@@ -188,13 +188,13 @@ export const Footer = () => {
         <div className="border-t border-border/50 pt-4 sm:pt-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4">
             <p className="text-xs sm:text-sm text-muted-foreground">
-              © 2025 QuickCourt. All rights reserved.
+              © 2026 HuddleUp. All rights reserved.
             </p>
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                 Made with
                 <span className="text-red-500 mx-1">♥</span>
-                by Strawhats Team
+                by Team Phoenix(Group 58)
               </div>
             </div>
           </div>
