@@ -22,7 +22,7 @@ import { Loader2, X, Upload, ImageIcon } from "lucide-react";
 interface Sport {
   id: string;
   name: string;
-  description?: string;
+  description?: string | null;
 }
 
 export function CreateVenueForm() {

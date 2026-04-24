@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
 import { getCurrentUser } from '@/lib/actions/users'
 import { Badge } from '@/components/ui/badge'
