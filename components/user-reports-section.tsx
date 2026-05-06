@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -93,7 +94,7 @@ export function UserReportsSection({
           No Reports Yet
         </h3>
         <p className="text-gray-500">
-          You haven't submitted any reports yet. Use the "Report an Issue" tab
+          You haven&apos;t submitted any reports yet. Use the &ldquo;Report an Issue&ldquo; tab
           to submit your first report.
         </p>
       </div>

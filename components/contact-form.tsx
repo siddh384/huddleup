@@ -104,8 +104,8 @@ export function ContactForm({ venues }: ContactFormProps) {
                 Report Submitted Successfully
               </h3>
               <p className="text-green-700 mt-1">
-                Thank you for your feedback. We'll review your report and take
-                appropriate action. You can track the status in the "My Reports"
+                Thank you for your feedback. We&apos;ll review your report and take
+                appropriate action. You can track the status in the &ldquo;My Reports&ldquo;
                 tab.
               </p>
             </div>
@@ -215,7 +215,7 @@ export function ContactForm({ venues }: ContactFormProps) {
       </Button>
 
       <p className="text-sm text-gray-500 text-center">
-        Reports are reviewed by our admin team. We'll investigate all legitimate
+        Reports are reviewed by our admin team. We&apos;ll investigate all legitimate
         concerns and take appropriate action to maintain platform quality.
       </p>
     </form>
