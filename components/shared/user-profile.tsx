@@ -79,7 +79,7 @@ export function UserProfile({ className }: { className?: string }) {
         {/* Admin dashboard - only show for admin users */}
         {user.role === "admin" && (
           <DropdownMenuItem className="cursor-pointer" asChild>
-            <Link href="/admin-dashboard" className="flex items-center gap-2">
+            <Link href="/admin" className="flex items-center gap-2">
               <Settings className="size-4" />
               Admin Dashboard
             </Link>
