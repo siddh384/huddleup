@@ -13,6 +13,7 @@ import {
 } from "@/db/schema";
 import { db } from "@/db";
 import { getCurrentUser } from "@/lib/actions/users";
+import { type City, isValidCity } from "@/lib/cities";
 import { revalidatePath } from "next/cache";
 
 export type Venue = typeof venues.$inferSelect;
@@ -24,6 +25,7 @@ export async function createVenue(venueData: {
   description?: string;
   address: string;
   location: string;
+  city: City;
   images: string[];
   amenities: string[];
   sportIds: string[];
@@ -46,6 +48,13 @@ export async function createVenue(venueData: {
       };
     }
 
+    if (!isValidCity(venueData.city)) {
+      return {
+        success: false,
+        error: "Invalid city. Must be one of: Vadodara, Ahmedabad, Gandhinagar, Surat",
+      };
+    }
+
     // Create the venue
     const [newVenue] = await db
       .insert(venues)
@@ -54,6 +63,7 @@ export async function createVenue(venueData: {
         description: venueData.description,
         address: venueData.address,
         location: venueData.location,
+        city: venueData.city,
         images: venueData.images,
         amenities: venueData.amenities,
         ownerId: userResult.user.id,
@@ -177,6 +187,7 @@ export async function getVenues({
   locationFilter,
   ratingFilter,
   status = "approved",
+  city,
 }: {
   page?: number;
   pageSize?: number;
@@ -185,6 +196,7 @@ export async function getVenues({
   locationFilter?: string;
   ratingFilter?: string;
   status?: "pending" | "approved" | "rejected";
+  city?: City;
 } = {}) {
   try {
     const skipAmount = (page - 1) * pageSize;
@@ -192,6 +204,11 @@ export async function getVenues({
     // Build search conditions
     const searchConditions = [];
     searchConditions.push(eq(venues.status, status));
+
+    // City filter
+    if (city && isValidCity(city)) {
+      searchConditions.push(eq(venues.city, city));
+    }
 
     if (searchQuery) {
       searchConditions.push(
@@ -735,10 +752,15 @@ export async function getOwnerBookings({
 }
 
 // Get all approved venues (for Popular section)
-export async function getPopularVenues() {
+export async function getPopularVenues(city?: City) {
   try {
+    const conditions = [eq(venues.status, "approved")];
+    if (city && isValidCity(city)) {
+      conditions.push(eq(venues.city, city));
+    }
+
     const allVenues = await db.query.venues.findMany({
-      where: eq(venues.status, "approved"),
+      where: and(...conditions),
       with: {
         venueSports: {
           with: {
@@ -746,7 +768,7 @@ export async function getPopularVenues() {
           },
         },
       },
-      orderBy: [desc(venues.createdAt)],
+      orderBy: [desc(venues.reviewCount), desc(venues.rating)],
       limit: 20,
     });
 
@@ -757,16 +779,16 @@ export async function getPopularVenues() {
   }
 }
 
-// Get venues near Vadodara (for Recommended section)
-export async function getRecommendedVenues() {
+// Get recommended venues (sorted by rating within user's city)
+export async function getRecommendedVenues(city?: City) {
   try {
-    // Default location: Vadodara, Gujarat, India
-    const defaultLat = 22.3072;
-    const defaultLng = 73.1812;
+    const conditions = [eq(venues.status, "approved")];
+    if (city && isValidCity(city)) {
+      conditions.push(eq(venues.city, city));
+    }
 
-    // Get all approved venues
     const allVenues = await db.query.venues.findMany({
-      where: eq(venues.status, "approved"),
+      where: and(...conditions),
       with: {
         venueSports: {
           with: {
@@ -774,27 +796,11 @@ export async function getRecommendedVenues() {
           },
         },
       },
+      orderBy: [desc(venues.rating), desc(venues.reviewCount)],
+      limit: 10,
     });
 
-    // Sort by distance from Vadodara
-    const venuesWithDistance = allVenues.map((venue) => {
-      let distance = Infinity;
-      if (venue.latitude && venue.longitude) {
-        const lat = parseFloat(String(venue.latitude));
-        const lng = parseFloat(String(venue.longitude));
-        if (!isNaN(lat) && !isNaN(lng)) {
-          distance = Math.sqrt(
-            Math.pow(lat - defaultLat, 2) + Math.pow(lng - defaultLng, 2)
-          );
-        }
-      }
-      return { ...venue, distance };
-    });
-
-    venuesWithDistance.sort((a, b) => a.distance - b.distance);
-
-    // Return top 10 nearest venues
-    return { success: true, venues: venuesWithDistance.slice(0, 10) };
+    return { success: true, venues: allVenues };
   } catch (error) {
     console.error("Error fetching recommended venues:", error);
     return { success: false, error: "Failed to fetch recommended venues" };
