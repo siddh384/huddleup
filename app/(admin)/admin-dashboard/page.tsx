@@ -1,5 +1,3 @@
-"use server";
-
 import { getCurrentUser, getAllUsers } from "@/lib/actions/users";
 import { getVenues } from "@/lib/actions/venues";
 import { getAllReports, getReportsStats } from "@/lib/actions/reports";
