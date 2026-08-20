@@ -15,12 +15,11 @@ const protectedRoutes = [
   "/profile",
 ];
 
-// Routes that require a city to be set (exclude /profile to avoid redirect loop)
-const cityRequiredRoutes = [
-  "/bookings",
-  "/my-bookings",
-  "/my-venues",
-  "/create-venue",
+// Routes exempt from city check (no redirect to /profile)
+const cityExemptRoutes = [
+  "/profile",     // The page they need to set their city
+  "/sign-in",
+  "/sign-up",
 ];
 
 const authRoutes = ["/sign-in", "/sign-up"];
@@ -51,8 +50,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // City guard: redirect authenticated users without a city to /profile
-  if (session && cityRequiredRoutes.some((route) => pathname.startsWith(route))) {
+  // City guard: authenticated user without a city → redirect to /profile
+  // Applies to ALL routes except exempt ones (profile, auth pages, API, static)
+  if (session && !cityExemptRoutes.some((route) => pathname.startsWith(route))) {
     try {
       const profile = await db.query.userProfiles.findFirst({
         where: eq(userProfiles.userId, session.user.id),

@@ -126,7 +126,7 @@ export default function AuthCard({
                         name,
                         email,
                         password,
-                        callbackURL: "/",
+                        callbackURL: "/profile",
                       },
                       {
                         onError: (ctx) => {
