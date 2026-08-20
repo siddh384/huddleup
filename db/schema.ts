@@ -76,7 +76,8 @@ export const venues = pgTable("venues", {
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   address: text("address").notNull(),
-  location: varchar("location", { length: 255 }).notNull(), // Short location for display
+  location: varchar("location", { length: 255 }).notNull(), // Short location for display (area/neighborhood)
+  city: varchar("city", { length: 50 }).notNull().default("Vadodara"), // City: Vadodara, Ahmedabad, Gandhinagar, Surat
   images: json("images").$type<string[]>().default([]), // Array of image URLs from UploadThing
   amenities: json("amenities").$type<string[]>().default([]), // Array of amenity strings
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"), // Average rating from reviews (0.00 to 5.00)
