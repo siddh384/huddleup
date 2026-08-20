@@ -7,8 +7,14 @@ import ThemeToggleButton from "@/components/ui/theme-toggle-button";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { CitySwitcher } from "@/components/city-switcher";
+import { type City } from "@/lib/cities";
 
-export const HomeNavbar = () => {
+interface HomeNavbarProps {
+  city?: City | null;
+}
+
+export const HomeNavbar = ({ city }: HomeNavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: user } = useCurrentUser();
 
@@ -76,13 +82,15 @@ export const HomeNavbar = () => {
         {/* User Controls */}
 
         {/* Desktop User Controls */}
-        <div className="hidden lg:flex flex-shrink-0 items-center gap-1">
+        <div className="hidden lg:flex flex-shrink-0 items-center gap-2">
+          {city && <CitySwitcher currentCity={city} />}
           <ThemeToggleButton variant="circle-blur" start="top-right" />
           <AuthStatus />
         </div>
 
         {/* Mobile Menu Button */}
         <div className="lg:hidden flex items-center gap-2">
+          {city && <CitySwitcher currentCity={city} />}
           <ThemeToggleButton variant="circle-blur" start="top-right" />
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
