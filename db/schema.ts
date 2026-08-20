@@ -238,37 +238,10 @@ export const userProfiles = pgTable("user_profiles", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const members = pgTable("members", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" })
-    .unique(),
-  planType: varchar("plan_type", { length: 20 }).notNull(), // 'monthly', '6_months', 'annual'
-  status: varchar("status", { length: 20 }).default("active"), // 'active', 'expired', 'cancelled'
-  startDate: timestamp("start_date").notNull(),
-  endDate: timestamp("end_date").notNull(),
-  autoRenew: boolean("auto_renew").default(false),
-  discountPercentage: integer("discount_percentage").default(30), // Default 30% discount
-  paymentAmount: decimal("payment_amount", {
-    precision: 10,
-    scale: 2,
-  }).notNull(),
-  paymentStatus: varchar("payment_status", { length: 20 }).default("pending"), // 'pending', 'paid', 'failed'
-  cancelledAt: timestamp("cancelled_at"),
-  cancellationReason: text("cancellation_reason"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
 export const userRelations = relations(user, ({ one, many }) => ({
   profile: one(userProfiles, {
     fields: [user.id],
     references: [userProfiles.userId],
-  }),
-  membership: one(members, {
-    fields: [user.id],
-    references: [members.userId],
   }),
   venues: many(venues),
   bookings: many(bookings),
@@ -282,13 +255,6 @@ export const userRelations = relations(user, ({ one, many }) => ({
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
   user: one(user, {
     fields: [userProfiles.userId],
-    references: [user.id],
-  }),
-}));
-
-export const membersRelations = relations(members, ({ one }) => ({
-  user: one(user, {
-    fields: [members.userId],
     references: [user.id],
   }),
 }));
@@ -444,6 +410,3 @@ export type NewNotification = typeof notifications.$inferInsert;
 
 export type Report = typeof reports.$inferSelect;
 export type NewReport = typeof reports.$inferInsert;
-
-export type Member = typeof members.$inferSelect;
-export type NewMember = typeof members.$inferInsert;

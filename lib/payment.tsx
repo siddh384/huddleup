@@ -7,14 +7,6 @@ const polar = new Polar({
   server: "sandbox",
 });
 
-export const buyMembership = async () => {
-  const checkout = await polar.checkouts.create({
-    products: ["9c04810d-081c-453c-a7d8-799a7b593765"],
-    successUrl: `${env.BETTER_AUTH_URL}/buy-membership`,
-  });
-  return { success: true, checkoutUrl: checkout.url };
-};
-
 export const payForBooking = async (amount: number, bookingId: string) => {
   // Validate amount is between 100 and 500
   if (amount < 100 || amount > 500) {

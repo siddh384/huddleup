@@ -1,9 +1,7 @@
 import { getCurrentUser, getUserStats } from "@/lib/actions/users";
-import { checkMembershipStatus } from "@/lib/actions/membership";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   User,
   Mail,
@@ -17,7 +15,6 @@ import {
   Shield,
 } from "lucide-react";
 import { format } from "date-fns";
-import Link from "next/link";
 import { ProfileForm } from "@/components/profile-form";
 
 export const dynamic = "force-dynamic";
@@ -32,13 +29,8 @@ export default async function ProfilePage() {
   const currentUser = userResult.user;
   const profile = currentUser.profile;
 
-  const [statsResult, membershipResult] = await Promise.all([
-    getUserStats(),
-    checkMembershipStatus(),
-  ]);
-
+  const statsResult = await getUserStats();
   const stats = statsResult.success ? statsResult.stats : null;
-  const membership = membershipResult.success ? membershipResult : null;
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
@@ -144,60 +136,6 @@ export default async function ProfilePage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Membership Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Membership
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {membership?.isMember && membership.membership ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold">
-                      {membership.membership.planType.replace("_", " ").toUpperCase()} Plan
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {membership.discountPercentage}% discount on bookings
-                    </p>
-                  </div>
-                  <Badge className="bg-green-600">Active</Badge>
-                </div>
-                <div className="grid gap-2 md:grid-cols-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Start Date:</span>{" "}
-                    {format(new Date(membership.membership.startDate), "MMM dd, yyyy")}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">End Date:</span>{" "}
-                    {format(new Date(membership.membership.endDate), "MMM dd, yyyy")}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Amount Paid:</span>{" "}
-                    ₹{membership.membership.paymentAmount}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Auto-Renew:</span>{" "}
-                    {membership.membership.autoRenew ? "Yes" : "No"}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground mb-4">
-                  You don&apos;t have an active membership. Get one to enjoy discounts on bookings!
-                </p>
-                <Link href="/buy-membership">
-                  <Button>Get Membership</Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Edit Profile Form */}
         <ProfileForm

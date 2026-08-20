@@ -1,7 +1,7 @@
 "use server";
 
 import { eq, desc, asc, and } from "drizzle-orm";
-import { courts, venues, sports, venueSports } from "@/db/schema";
+import { courts, venues, sports, venueSports, bookings } from "@/db/schema";
 import { db } from "@/db";
 import { getCurrentUser } from "@/lib/actions/users";
 import { revalidatePath } from "next/cache";
@@ -341,7 +341,7 @@ export async function getCourtById(courtId: string) {
         sport: true,
         bookings: {
           limit: 10,
-          orderBy: desc(courts.createdAt),
+          orderBy: desc(bookings.createdAt),
         },
       },
     });

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Clock, Calendar as CalendarIcon, MapPin, User, CreditCard, Loader2, Plus, Minus } from 'lucide-react';
-import { generateTimeSlots, createBooking, getBookingPricing } from '@/lib/actions/bookings';
+import { generateTimeSlots, createBooking } from '@/lib/actions/bookings';
 
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -50,15 +50,6 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
     const [loading, setLoading] = useState(false);
     const [booking, setBooking] = useState(false);
-    const [membershipStatus, setMembershipStatus] = useState<{
-        isMember: boolean;
-        discountPercentage: number;
-    }>({ isMember: false, discountPercentage: 0 });
-    const [pricingInfo, setPricingInfo] = useState<{
-        originalPrice: number;
-        discountedPrice: number;
-        discountAmount: number;
-    } | null>(null);
 
     // Format date for API call — use local date components so the user's
     // selected calendar day is always sent regardless of timezone.
@@ -70,41 +61,18 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
         return `${y}-${m}-${d}`;
     };
 
-    // Load time slots and membership status when dialog opens
+    // Load time slots when dialog opens
     useEffect(() => {
         if (isOpen) {
             loadTimeSlots();
         }
     }, [selectedDate, isOpen]);
 
-    // Update pricing when duration changes
-    useEffect(() => {
-        if (isOpen) {
-            updatePricing();
-        }
-    }, [duration, membershipStatus, isOpen]);
-
     // Reset selected slot when duration changes
     useEffect(() => {
         setSelectedSlot(null);
     }, [duration]);
 
-
-    const updatePricing = async () => {
-        try {
-            const result = await getBookingPricing(courtId, duration);
-            if (result.success) {
-                const originalPrice = result.originalPrice || 0;
-                setPricingInfo({
-                    originalPrice,
-                    discountedPrice: originalPrice,
-                    discountAmount: 0,
-                });
-            }
-        } catch (error) {
-            console.error('Error updating pricing:', error);
-        }
-    };
 
     const loadTimeSlots = async () => {
         setLoading(true);
@@ -323,31 +291,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                                 </Button>
                             </div>
                             <div className="text-center mt-3 p-3 bg-background/50 rounded-lg space-y-1">
-                                {membershipStatus.isMember && pricingInfo ? (
-                                    <>
-                                        <div className="flex items-center justify-center gap-2">
-                                            <span className="text-sm text-muted-foreground line-through">
-                                                ₹{pricingInfo.originalPrice.toFixed(0)}
-                                            </span>
-                                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                                                {membershipStatus.discountPercentage}% OFF
-                                            </Badge>
-                                        </div>
-                                        <div className="font-bold text-primary text-lg">
-                                            ₹{pricingInfo.discountedPrice.toFixed(0)}
-                                        </div>
-                                        <div className="text-xs text-green-600">
-                                            You save ₹{pricingInfo.discountAmount.toFixed(0)}
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span className="text-sm text-muted-foreground">Estimated Total: </span>
-                                        <span className="font-bold text-primary">
-                                            ₹{(parseFloat(pricePerHour) * duration).toFixed(0)}
-                                        </span>
-                                    </>
-                                )}
+                                <span className="text-sm text-muted-foreground">Estimated Total: </span>
+                                <span className="font-bold text-primary">
+                                    ₹{(parseFloat(pricePerHour) * duration).toFixed(0)}
+                                </span>
                             </div>
                         </div>
 
@@ -405,20 +352,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                                                                 </Badge>
                                                             </div>
                                                             <div className="text-xs text-muted-foreground">
-                                                                {membershipStatus.isMember ? (
-                                                                    <div className="space-y-1">
-                                                                        <div className="line-through opacity-70">
-                                                                            ₹{slot.price}/hr × {duration} = ₹{(slot.price * duration).toFixed(0)}
-                                                                        </div>
-                                                                        <div className="text-green-600 font-semibold">
-                                                                            Member Price: ₹{((slot.price * duration) * (100 - membershipStatus.discountPercentage) / 100).toFixed(0)}
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <>
-                                                                        ₹{slot.price}/hr × {duration} = <span className="font-semibold text-primary">₹{(slot.price * duration).toFixed(0)}</span>
-                                                                    </>
-                                                                )}
+                                                                ₹{slot.price}/hr × {duration} = <span className="font-semibold text-primary">₹{(slot.price * duration).toFixed(0)}</span>
                                                             </div>
                                                         </div>
                                                     </CardContent>
@@ -481,32 +415,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                                 </div>
                             </div>
                             <div className="border-t border-primary/20 pt-4">
-                                {membershipStatus.isMember && pricingInfo ? (
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-muted/50 to-muted/30 rounded-lg">
-                                            <span className="text-sm text-muted-foreground">Original Price</span>
-                                            <span className="text-lg line-through text-muted-foreground">₹{pricingInfo.originalPrice.toFixed(0)}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-sm text-green-700 dark:text-green-300">Member Discount ({membershipStatus.discountPercentage}%)</span>
-                                                <Badge variant="secondary" className="bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200">
-                                                    MEMBER
-                                                </Badge>
-                                            </div>
-                                            <span className="text-lg font-semibold text-green-700 dark:text-green-300">-₹{pricingInfo.discountAmount.toFixed(0)}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between p-5 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg">
-                                            <span className="text-lg font-bold text-foreground">Total Amount</span>
-                                            <span className="text-2xl font-bold text-primary">₹{pricingInfo.discountedPrice.toFixed(0)}</span>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center justify-between p-5 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg">
-                                        <span className="text-lg font-bold text-foreground">Total Amount</span>
-                                        <span className="text-2xl font-bold text-primary">₹{(selectedSlot.price * duration).toFixed(0)}</span>
-                                    </div>
-                                )}
+                                <div className="flex items-center justify-between p-5 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg">
+                                    <span className="text-lg font-bold text-foreground">Total Amount</span>
+                                    <span className="text-2xl font-bold text-primary">₹{(selectedSlot.price * duration).toFixed(0)}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -539,10 +451,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                                     Confirm Booking
                                     {selectedSlot && (
                                         <span className="ml-2 text-sm opacity-90">
-                                            {membershipStatus.isMember && pricingInfo ?
-                                                `₹${pricingInfo.discountedPrice.toFixed(0)}` :
-                                                `₹${(selectedSlot.price * duration).toFixed(0)}`
-                                            }
+                                            ₹{(selectedSlot.price * duration).toFixed(0)}
                                         </span>
                                     )}
                                 </>

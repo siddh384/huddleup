@@ -4,7 +4,6 @@ import { eq, desc, asc, and, gte, lte, sql } from "drizzle-orm";
 import { bookings, courts, timeSlots, venues } from "@/db/schema";
 import { db } from "@/db";
 import { getCurrentUser } from "@/lib/actions/users";
-import { calculateMembershipDiscount } from "@/lib/actions/membership";
 import { revalidatePath } from "next/cache";
 
 export type Booking = typeof bookings.$inferSelect;
@@ -157,16 +156,7 @@ export async function createBooking(bookingData: {
     }
 
     // Calculate total price (duration * price per hour)
-    const originalPrice = parseFloat(court.pricePerHour) * bookingData.duration;
-
-    // Apply membership discount if user is a member
-    const discountResult = await calculateMembershipDiscount(
-      originalPrice,
-      userResult.user.id,
-    );
-    const finalPrice = discountResult.success
-      ? discountResult.discountedPrice
-      : originalPrice;
+    const finalPrice = parseFloat(court.pricePerHour) * bookingData.duration;
 
     // Create booking date object — server TZ is IST (set via env)
     const bookingDateTime = new Date(bookingData.bookingDate);
@@ -213,13 +203,6 @@ export async function createBooking(bookingData: {
     return {
       success: true,
       booking: newBooking,
-      discountApplied: discountResult.success && discountResult.isMember,
-      originalPrice: discountResult.success
-        ? discountResult.originalPrice
-        : originalPrice,
-      discountAmount: discountResult.success
-        ? discountResult.discountAmount
-        : 0,
       finalPrice,
     };
   } catch (error) {
@@ -383,15 +366,9 @@ export async function getCourtBookings(courtId: string) {
   }
 }
 
-// Get pricing information with membership discount
+// Get pricing information
 export async function getBookingPricing(courtId: string, duration: number) {
   try {
-    const userResult = await getCurrentUser();
-
-    if (!userResult.success || !userResult.user) {
-      return { success: false, error: "No authenticated user found" };
-    }
-
     // Get court information
     const court = await db.query.courts.findFirst({
       where: eq(courts.id, courtId),
@@ -405,31 +382,13 @@ export async function getBookingPricing(courtId: string, duration: number) {
       return { success: false, error: "Court not found" };
     }
 
-    // Calculate original price
-    const originalPrice = parseFloat(court.pricePerHour) * duration;
-
-    // Apply membership discount if user is a member
-    const discountResult = await calculateMembershipDiscount(
-      originalPrice,
-      userResult.user.id,
-    );
+    const pricePerHour = parseFloat(court.pricePerHour);
+    const originalPrice = pricePerHour * duration;
 
     return {
       success: true,
-      originalPrice: discountResult.success
-        ? discountResult.originalPrice
-        : originalPrice,
-      discountedPrice: discountResult.success
-        ? discountResult.discountedPrice
-        : originalPrice,
-      discountAmount: discountResult.success
-        ? discountResult.discountAmount
-        : 0,
-      discountPercentage: discountResult.success
-        ? discountResult.discountPercentage
-        : 0,
-      isMember: discountResult.success ? discountResult.isMember : false,
-      pricePerHour: parseFloat(court.pricePerHour),
+      originalPrice,
+      pricePerHour,
     };
   } catch (error) {
     console.error("Error getting booking pricing:", error);
@@ -524,73 +483,4 @@ export async function updateBookingPaymentStatus(
   }
 }
 
-// Get bookings for venues owned by the current user (for venue owners)
-export async function getOwnerVenueBookings() {
-  try {
-    const userResult = await getCurrentUser();
 
-    if (!userResult.success || !userResult.user) {
-      return { success: false, error: "No authenticated user found" };
-    }
-
-    // Get all bookings for courts in venues owned by the current user
-    const venueBookings = await db.query.bookings.findMany({
-      where:
-        and(),
-        // We'll filter by venue ownership in the join
-      with: {
-        user: {
-          columns: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        court: {
-          with: {
-            venue: {
-              columns: {
-                id: true,
-                name: true,
-                ownerId: true,
-              },
-            },
-            sport: {
-              columns: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: desc(bookings.createdAt),
-    });
-
-    // Filter bookings to only include those from venues owned by the current user
-    const userOwnedBookings = venueBookings.filter(
-      (booking) => booking.court.venue.ownerId === userResult.user!.id,
-    );
-
-    // Transform the data to match the dashboard format
-    const transformedBookings = userOwnedBookings.map((booking) => ({
-      id: booking.id,
-      bookingDate: booking.bookingDate.toISOString().split("T")[0],
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      status: booking.status,
-      paymentStatus: booking.paymentStatus,
-      venueName: booking.court.venue.name,
-      courtName: booking.court.name,
-      customerName: booking.user.name,
-      customerEmail: booking.user.email,
-      totalPrice: parseFloat(booking.totalPrice),
-      sportName: booking.court.sport.name,
-    }));
-
-    return { success: true, bookings: transformedBookings };
-  } catch (error) {
-    console.error("Error fetching owner venue bookings:", error);
-    return { success: false, error: "Failed to fetch venue bookings" };
-  }
-}
