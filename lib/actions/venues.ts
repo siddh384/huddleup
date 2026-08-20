@@ -417,6 +417,17 @@ export async function getUserVenues() {
       return { success: false, error: "No authenticated user found" };
     }
 
+    // Check if user is facility owner or admin
+    if (
+      userResult.user.role !== "facility_owner" &&
+      userResult.user.role !== "admin"
+    ) {
+      return {
+        success: false,
+        error: "Unauthorized: Facility owner access required",
+      };
+    }
+
     const userVenues = await db.query.venues.findMany({
       where: eq(venues.ownerId, userResult.user.id),
       with: {

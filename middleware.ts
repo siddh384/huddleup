@@ -7,6 +7,7 @@ const protectedRoutes = [
   "/my-venues",
   "/admin",
   "/admin-dashboard",
+  "/owner-dashboard",
   "/create-venue",
   "/profile",
 ];
