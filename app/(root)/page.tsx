@@ -8,11 +8,14 @@ import { CardCarousel } from '@/components/ui/card-carousel'
 import { RecentlyVisited } from '@/components/recently-visited'
 import { VenueCarousel } from '@/components/venue-carousel'
 import { getPopularVenues, getRecommendedVenues } from '@/lib/actions/venues'
+import { getUserCity } from '@/lib/actions/cities'
 
 const page = async () => {
+  const city = await getUserCity()
+
   const [popularResult, recommendedResult] = await Promise.all([
-    getPopularVenues(),
-    getRecommendedVenues(),
+    getPopularVenues(city ?? undefined),
+    getRecommendedVenues(city ?? undefined),
   ])
 
   const popularVenues = popularResult.success ? popularResult.venues || [] : []
@@ -47,11 +50,11 @@ const page = async () => {
       {/* Recently Visited Section - Client component with localStorage */}
       <RecentlyVisited />
 
-      {/* Recommended Venues Section - Venues near Vadodara */}
+      {/* Recommended Venues Section - Top rated in user's city */}
       <VenueCarousel
         title="Recommended For You"
         venues={recommendedVenues}
-        emptyMessage="No venues found near your location"
+        emptyMessage={city ? `No venues available in ${city} yet` : "Sign up to see recommended venues"}
       />
 
       {/* Popular Venues Section - All approved venues */}
