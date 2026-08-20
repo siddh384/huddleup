@@ -1,0 +1,1 @@
+ALTER TABLE "bookings" ADD CONSTRAINT "unique_active_booking" UNIQUE("court_id","booking_date","start_time","status");

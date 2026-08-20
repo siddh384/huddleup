@@ -9,6 +9,7 @@ import {
   primaryKey,
   varchar,
   json,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -144,7 +145,14 @@ export const bookings = pgTable("bookings", {
   cancellationReason: text("cancellation_reason"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => [
+  unique("unique_active_booking").on(
+    table.courtId,
+    table.bookingDate,
+    table.startTime,
+    table.status
+  ),
+]);
 
 export const timeSlots = pgTable("time_slots", {
   id: uuid("id").defaultRandom().primaryKey(),
