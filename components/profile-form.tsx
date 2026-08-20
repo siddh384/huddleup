@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Edit, Loader2, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { CITIES } from "@/lib/cities";
 
 type User = {
   id: string;
@@ -69,6 +70,12 @@ export function ProfileForm({ user, profile }: ProfileFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    if (!formData.city) {
+      toast.error("Please select your city");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const userResult = await updateUserInfo({
@@ -192,15 +199,26 @@ export function ProfileForm({ user, profile }: ProfileFormProps) {
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
+              <Label htmlFor="city">
+                City <span className="text-red-500">*</span>
+              </Label>
+              <Select
                 value={formData.city}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, city: e.target.value }))
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, city: value }))
                 }
-                placeholder="Optional"
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CITIES.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="state">State</Label>
