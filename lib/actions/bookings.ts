@@ -173,19 +173,37 @@ export async function createBooking(bookingData: {
     bookingDateTime.setHours(startHour, 0, 0, 0);
 
     // Create the booking
-    const [newBooking] = await db
-      .insert(bookings)
-      .values({
-        userId: userResult.user.id,
-        courtId: bookingData.courtId,
-        bookingDate: bookingDateTime,
-        startTime: bookingData.startTime,
-        endTime: bookingData.endTime,
-        totalPrice: finalPrice.toString(),
-        status: "confirmed",
-        paymentStatus: "pending",
-      })
-      .returning();
+    let newBooking;
+    try {
+      [newBooking] = await db
+        .insert(bookings)
+        .values({
+          userId: userResult.user.id,
+          courtId: bookingData.courtId,
+          bookingDate: bookingDateTime,
+          startTime: bookingData.startTime,
+          endTime: bookingData.endTime,
+          totalPrice: finalPrice.toString(),
+          status: "confirmed",
+          paymentStatus: "pending",
+        })
+        .returning();
+    } catch (insertError: unknown) {
+      // PostgreSQL unique violation error code
+      if (
+        insertError &&
+        typeof insertError === "object" &&
+        "code" in insertError &&
+        (insertError as { code: string }).code === "23505"
+      ) {
+        return {
+          success: false,
+          error:
+            "This time slot was just booked by someone else. Please select a different time.",
+        };
+      }
+      throw insertError;
+    }
 
     revalidatePath("/");
     revalidatePath("/venues");
