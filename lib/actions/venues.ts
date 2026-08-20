@@ -100,6 +100,7 @@ export async function updateVenue(
     description?: string;
     address?: string;
     location?: string;
+    city?: City;
     images?: string[];
     amenities?: string[];
     sportIds?: string[];
@@ -141,6 +142,7 @@ export async function updateVenue(
     if (venueData.description !== undefined) updateData.description = venueData.description;
     if (venueData.address !== undefined) updateData.address = venueData.address;
     if (venueData.location !== undefined) updateData.location = venueData.location;
+    if (venueData.city !== undefined && isValidCity(venueData.city)) updateData.city = venueData.city;
     if (venueData.images !== undefined) updateData.images = venueData.images;
     if (venueData.amenities !== undefined) updateData.amenities = venueData.amenities;
 

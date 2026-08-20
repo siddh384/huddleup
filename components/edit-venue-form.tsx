@@ -12,6 +12,14 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, X } from "lucide-react";
+import { CITIES, type City } from "@/lib/cities";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Sport {
   id: string;
@@ -25,6 +33,7 @@ interface Venue {
   description?: string | null;
   address: string;
   location: string;
+  city?: string | null;
   images?: string[] | null;
   amenities?: string[] | null;
   venueSports?: Array<{
@@ -54,6 +63,7 @@ export function EditVenueForm({ venue }: EditVenueFormProps) {
     description: venue.description || "",
     address: venue.address,
     location: venue.location,
+    city: (venue.city as City) || "",
     amenities: venue.amenities?.join(", ") || "",
     selectedSports: venue.venueSports?.map((vs) => vs.sportId) || [],
   });
@@ -115,6 +125,11 @@ export function EditVenueForm({ venue }: EditVenueFormProps) {
       return;
     }
 
+    if (!formData.city) {
+      toast.error("Please select a city");
+      return;
+    }
+
     if (formData.selectedSports.length === 0) {
       toast.error("Please select at least one sport");
       return;
@@ -133,6 +148,7 @@ export function EditVenueForm({ venue }: EditVenueFormProps) {
         description: formData.description || undefined,
         address: formData.address,
         location: formData.location,
+        city: formData.city as City,
         images: uploadedImages,
         amenities: amenitiesArray,
         sportIds: formData.selectedSports,
@@ -212,14 +228,37 @@ export function EditVenueForm({ venue }: EditVenueFormProps) {
             </div>
 
             <div>
+              <Label className="pb-1.5" htmlFor="city">
+                City <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.city}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, city: value as City }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CITIES.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
               <Label className="pb-1.5" htmlFor="location">
-                Location (City/Area) *
+                Area/Neighborhood *
               </Label>
               <Input
                 id="location"
                 value={formData.location}
                 onChange={(e) => handleInputChange("location", e.target.value)}
-                placeholder="e.g., Downtown Manhattan, Brooklyn Heights"
+                placeholder="e.g., Alkapuri, SG Highway, Vesu"
                 required
               />
             </div>
