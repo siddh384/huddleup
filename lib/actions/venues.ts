@@ -82,6 +82,92 @@ export async function createVenue(venueData: {
   }
 }
 
+// Update a venue (owner or admin only)
+export async function updateVenue(
+  venueId: string,
+  venueData: {
+    name?: string;
+    description?: string;
+    address?: string;
+    location?: string;
+    images?: string[];
+    amenities?: string[];
+    sportIds?: string[];
+  },
+) {
+  try {
+    const userResult = await getCurrentUser();
+
+    if (!userResult.success || !userResult.user) {
+      return { success: false, error: "No authenticated user found" };
+    }
+
+    // Get the venue to check ownership
+    const existingVenue = await db.query.venues.findFirst({
+      where: eq(venues.id, venueId),
+    });
+
+    if (!existingVenue) {
+      return { success: false, error: "Venue not found" };
+    }
+
+    // Check if user owns the venue or is admin
+    if (
+      existingVenue.ownerId !== userResult.user.id &&
+      userResult.user.role !== "admin"
+    ) {
+      return {
+        success: false,
+        error: "Unauthorized: You can only edit your own venues",
+      };
+    }
+
+    // Update venue fields
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (venueData.name !== undefined) updateData.name = venueData.name;
+    if (venueData.description !== undefined) updateData.description = venueData.description;
+    if (venueData.address !== undefined) updateData.address = venueData.address;
+    if (venueData.location !== undefined) updateData.location = venueData.location;
+    if (venueData.images !== undefined) updateData.images = venueData.images;
+    if (venueData.amenities !== undefined) updateData.amenities = venueData.amenities;
+
+    const [updatedVenue] = await db
+      .update(venues)
+      .set(updateData)
+      .where(eq(venues.id, venueId))
+      .returning();
+
+    // Update sports if provided
+    if (venueData.sportIds !== undefined) {
+      // Remove existing venue-sport associations
+      await db
+        .delete(venueSports)
+        .where(eq(venueSports.venueId, venueId));
+
+      // Add new associations
+      if (venueData.sportIds.length > 0) {
+        const venueSportEntries = venueData.sportIds.map((sportId) => ({
+          venueId: venueId,
+          sportId: sportId,
+        }));
+        await db.insert(venueSports).values(venueSportEntries);
+      }
+    }
+
+    revalidatePath("/");
+    revalidatePath("/venues");
+    revalidatePath(`/venues/${venueId}`);
+
+    return { success: true, venue: updatedVenue };
+  } catch (error) {
+    console.error("Error updating venue:", error);
+    return { success: false, error: "Failed to update venue" };
+  }
+}
+
 // Get all venues with pagination and filtering
 export async function getVenues({
   page = 1,
@@ -509,7 +595,7 @@ export async function getOwnerDashboardStats() {
         0,
       );
 
-      // Calculate this month's revenue
+      // Calculate this month's revenue — server TZ is IST (set via env)
       const currentMonth = new Date();
       currentMonth.setDate(1);
       currentMonth.setHours(0, 0, 0, 0);
@@ -634,5 +720,105 @@ export async function getOwnerBookings({
   } catch (error) {
     console.error("Error fetching owner bookings:", error);
     return { success: false, error: "Failed to fetch bookings" };
+  }
+}
+
+// Get all approved venues (for Popular section)
+export async function getPopularVenues() {
+  try {
+    const allVenues = await db.query.venues.findMany({
+      where: eq(venues.status, "approved"),
+      with: {
+        venueSports: {
+          with: {
+            sport: true,
+          },
+        },
+      },
+      orderBy: [desc(venues.createdAt)],
+      limit: 20,
+    });
+
+    return { success: true, venues: allVenues };
+  } catch (error) {
+    console.error("Error fetching popular venues:", error);
+    return { success: false, error: "Failed to fetch popular venues" };
+  }
+}
+
+// Get venues near Vadodara (for Recommended section)
+export async function getRecommendedVenues() {
+  try {
+    // Default location: Vadodara, Gujarat, India
+    const defaultLat = 22.3072;
+    const defaultLng = 73.1812;
+
+    // Get all approved venues
+    const allVenues = await db.query.venues.findMany({
+      where: eq(venues.status, "approved"),
+      with: {
+        venueSports: {
+          with: {
+            sport: true,
+          },
+        },
+      },
+    });
+
+    // Sort by distance from Vadodara
+    const venuesWithDistance = allVenues.map((venue) => {
+      let distance = Infinity;
+      if (venue.latitude && venue.longitude) {
+        const lat = parseFloat(String(venue.latitude));
+        const lng = parseFloat(String(venue.longitude));
+        if (!isNaN(lat) && !isNaN(lng)) {
+          distance = Math.sqrt(
+            Math.pow(lat - defaultLat, 2) + Math.pow(lng - defaultLng, 2)
+          );
+        }
+      }
+      return { ...venue, distance };
+    });
+
+    venuesWithDistance.sort((a, b) => a.distance - b.distance);
+
+    // Return top 10 nearest venues
+    return { success: true, venues: venuesWithDistance.slice(0, 10) };
+  } catch (error) {
+    console.error("Error fetching recommended venues:", error);
+    return { success: false, error: "Failed to fetch recommended venues" };
+  }
+}
+
+// Get venues by IDs (for Recently Visited section)
+export async function getVenuesByIds(venueIds: string[]) {
+  try {
+    if (!venueIds || venueIds.length === 0) {
+      return { success: true, venues: [] };
+    }
+
+    const venueList = await db.query.venues.findMany({
+      where: and(
+        inArray(venues.id, venueIds),
+        eq(venues.status, "approved")
+      ),
+      with: {
+        venueSports: {
+          with: {
+            sport: true,
+          },
+        },
+      },
+    });
+
+    // Maintain the order from venueIds
+    const sortedVenues = venueIds
+      .map((id) => venueList.find((v) => v.id === id))
+      .filter((v): v is NonNullable<typeof v> => v !== undefined);
+
+    return { success: true, venues: sortedVenues };
+  } catch (error) {
+    console.error("Error fetching venues by IDs:", error);
+    return { success: false, error: "Failed to fetch venues" };
   }
 }

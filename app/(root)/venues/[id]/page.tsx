@@ -26,6 +26,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import BookingDialog from "@/components/booking-dialog";
 import ReviewsSection from "@/components/reviews-section";
+import { VenueVisitTracker } from "@/components/venue-visit-tracker";
 
 // Force dynamic rendering for this page
 export const dynamic = "force-dynamic";
@@ -67,6 +68,9 @@ const VenueDetailsPage = async ({ params }: VenueDetailsPageProps) => {
 
   return (
     <div className="container mx-auto p-6">
+      {/* Track venue visit for Recently Visited */}
+      <VenueVisitTracker venueId={venue.id} />
+
       {/* Header with Navigation */}
       <div className="mb-6">
         <div className="flex items-center justify-between">
@@ -225,7 +229,7 @@ const VenueDetailsPage = async ({ params }: VenueDetailsPageProps) => {
       </div>
 
       {/* Courts Grid Section */}
-      {venue.courts && venue.courts.length > 0 && (
+      {venue.courts && venue.courts.length > 0 ? (
         <div className="mt-12">
           <div className="mb-8">
             <h2 className="text-3xl font-bold mb-2">Available Courts</h2>
@@ -316,6 +320,13 @@ const VenueDetailsPage = async ({ params }: VenueDetailsPageProps) => {
               );
             })}
           </div>
+        </div>
+      ) : (
+        <div className="mt-12 text-center py-12 bg-muted/30 rounded-lg">
+          <h2 className="text-2xl font-bold mb-2">No Courts Available</h2>
+          <p className="text-muted-foreground">
+            This venue doesn&apos;t have any courts set up yet. Check back later!
+          </p>
         </div>
       )}
 

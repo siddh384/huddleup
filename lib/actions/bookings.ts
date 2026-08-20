@@ -41,7 +41,7 @@ export async function generateTimeSlots(courtId: string, date: string) {
       const startTime = `${hour.toString().padStart(2, "0")}:00`;
       const endTime = `${(hour + 1).toString().padStart(2, "0")}:00`;
 
-      // Create datetime for this slot
+      // Create datetime for this slot — server TZ is IST (set via env)
       const slotDate = new Date(selectedDate);
       slotDate.setHours(hour, 0, 0, 0);
 
@@ -168,7 +168,7 @@ export async function createBooking(bookingData: {
       ? discountResult.discountedPrice
       : originalPrice;
 
-    // Create booking date object
+    // Create booking date object — server TZ is IST (set via env)
     const bookingDateTime = new Date(bookingData.bookingDate);
     bookingDateTime.setHours(startHour, 0, 0, 0);
 
@@ -440,6 +440,12 @@ export async function getBookingPricing(courtId: string, duration: number) {
 // Get booking by ID
 export async function getBookingById(bookingId: string) {
   try {
+    const userResult = await getCurrentUser();
+
+    if (!userResult.success || !userResult.user) {
+      return { success: false, error: "No authenticated user found" };
+    }
+
     const booking = await db.query.bookings.findFirst({
       where: eq(bookings.id, bookingId),
       with: {
@@ -461,6 +467,19 @@ export async function getBookingById(bookingId: string) {
 
     if (!booking) {
       return { success: false, error: "Booking not found" };
+    }
+
+    // Check if user owns the booking or is admin/venue owner
+    const isAuthorized =
+      booking.userId === userResult.user.id ||
+      userResult.user.role === "admin" ||
+      booking.court.venue.ownerId === userResult.user.id;
+
+    if (!isAuthorized) {
+      return {
+        success: false,
+        error: "Unauthorized: You can only view your own bookings",
+      };
     }
 
     return { success: true, booking };

@@ -16,9 +16,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         const result = await getBookingById(bookingId);
 
         if (!result.success) {
+            const statusMap: Record<string, number> = {
+                'No authenticated user found': 401,
+                'Booking not found': 404,
+            };
+            const status = result.error && statusMap[result.error]
+                ? statusMap[result.error]
+                : result.error?.startsWith('Unauthorized') ? 403 : 400;
             return NextResponse.json(
                 { error: result.error },
-                { status: result.error === 'Booking not found' ? 404 : 400 }
+                { status }
             );
         }
 

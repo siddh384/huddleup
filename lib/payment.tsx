@@ -16,14 +16,14 @@ export const buyMembership = async () => {
 };
 
 export const payForBooking = async (amount: number, bookingId: string) => {
-  // Validate amount is between 1 and 500
-  if (amount < 1 || amount > 500) {
-    return { success: false, error: "Amount must be between ₹1 and ₹500" };
+  // Validate amount is between 100 and 500
+  if (amount < 100 || amount > 500) {
+    return { success: false, error: "Amount must be between ₹100 and ₹500" };
   }
 
   try {
     const checkout = await polar.checkouts.create({
-      products: ["abf9ae33-1c8c-42fd-93cb-f80a11f77009"],
+      products: ["a36af0cb-f387-46dc-83cd-f0bb9388d921"],
       amount: amount * 100, // Convert to paise for Polar
       successUrl: `${env.BETTER_AUTH_URL}/api/payment/success?booking=${bookingId}`,
       metadata: {

@@ -89,14 +89,14 @@ type VenueData = {
   createdAt: string;
 };
 
-// Mock data for demonstration - replace with actual API calls
-const mockStats: OwnerStats = {
-  totalVenues: 3,
-  totalCourts: 12,
-  totalRevenue: 15750,
-  totalBookings: 127,
-  monthlyRevenue: 3250,
-  monthlyBookings: 24,
+// Initial stats (zeroed out - will be updated with real data)
+const initialStats: OwnerStats = {
+  totalVenues: 0,
+  totalCourts: 0,
+  totalRevenue: 0,
+  totalBookings: 0,
+  monthlyRevenue: 0,
+  monthlyBookings: 0,
   venues: [],
 };
 
@@ -502,7 +502,7 @@ function DataTable<TData, TValue>({
 
 export default function OwnerDashboard() {
   const { data: user, isLoading } = useCurrentUser();
-  const [stats, setStats] = useState<OwnerStats>(mockStats);
+  const [stats, setStats] = useState<OwnerStats>(initialStats);
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [venues, setVenues] = useState<VenueData[]>([]);
   const [venuesLoading, setVenuesLoading] = useState(true);
@@ -525,16 +525,14 @@ export default function OwnerDashboard() {
               location: venue.location,
               status: venue.status,
               courtsCount: venue.courts?.length || 0,
-              totalBookings: 0, // TODO: Add booking count calculation
-              revenue: 0, // TODO: Add revenue calculation
+              totalBookings: 0,
+              revenue: 0,
               createdAt: new Date(venue.createdAt).toISOString().split("T")[0],
             }),
           );
           setVenues(transformedVenues);
-          // Update stats if bookings are already loaded
-          if (!bookingsLoading && bookings.length > 0) {
-            updateStatsFromRealData(bookings, transformedVenues);
-          }
+          // Update stats with venues data (bookings may or may not be loaded yet)
+          updateStatsFromRealData(bookings, transformedVenues);
         }
       } catch (error) {
         console.error("Error fetching venues:", error);
@@ -558,7 +556,7 @@ export default function OwnerDashboard() {
 
       if (data.success && data.bookings) {
         setBookings(data.bookings);
-        // Update stats based on real data
+        // Update stats with bookings data (venues may or may not be loaded yet)
         updateStatsFromRealData(data.bookings, venues);
       }
     } catch (error) {

@@ -60,9 +60,14 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
         discountAmount: number;
     } | null>(null);
 
-    // Format date for API call
+    // Format date for API call — use local date components so the user's
+    // selected calendar day is always sent regardless of timezone.
+    // With TZ=Asia/Kolkata, new Date("YYYY-MM-DD") parses as IST midnight.
     const formatDateForAPI = (date: Date) => {
-        return format(date, 'yyyy-MM-dd');
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
     };
 
     // Load time slots and membership status when dialog opens
@@ -189,15 +194,27 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
         setTimeSlots([]);
     };
 
-    // Filter out past time slots for today
+    // Helper: format a Date's local date as 'yyyy-MM-dd'
+    const formatDateLocal = (d: Date) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
+
+    // Filter out past time slots for today.
+    // With TZ=Asia/Kolkata on the server, slot times are in IST.
+    // Browser is also IST for Indian users, so local time comparison is correct.
     const availableSlots = timeSlots.filter(slot => {
         const now = new Date();
-        const today = format(now, 'yyyy-MM-dd');
-        const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+        const today = formatDateLocal(now);
+        const selectedDateStr = formatDateForAPI(selectedDate);
 
         // If it's today, filter out past slots
         if (selectedDateStr === today) {
-            const currentTime = format(now, 'HH:mm');
+            const currentHour = String(now.getHours()).padStart(2, '0');
+            const currentMinute = String(now.getMinutes()).padStart(2, '0');
+            const currentTime = `${currentHour}:${currentMinute}`;
             return slot.startTime > currentTime;
         }
 

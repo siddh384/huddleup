@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BookingPaymentDialog } from "@/components/booking-payment-dialog";
 import { PaymentStatusHandler } from "@/components/payment-status-handler";
+import { CancelBookingButton } from "@/components/cancel-booking-button";
 
 // Force dynamic rendering for this page
 export const dynamic = "force-dynamic";
@@ -207,15 +208,9 @@ const BookingsPage = async () => {
                     </Link>
 
                     {isUpcoming && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="flex-1"
-                        // TODO: Add cancel booking functionality
-                        disabled
-                      >
-                        Cancel
-                      </Button>
+                      <CancelBookingButton
+                        bookingId={booking.id}
+                      />
                     )}
                   </div>
                 </CardContent>

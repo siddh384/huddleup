@@ -33,8 +33,8 @@ export function BookingPaymentDialog({
   const handlePayment = async () => {
     const numAmount = parseFloat(amount);
 
-    if (isNaN(numAmount) || numAmount < 1 || numAmount > 500) {
-      toast.error("Please enter a valid amount between ₹1 and ₹500");
+    if (isNaN(numAmount) || numAmount < 100 || numAmount > 500) {
+      toast.error("Please enter a valid amount between ₹100 and ₹500");
       return;
     }
 
@@ -80,11 +80,11 @@ export function BookingPaymentDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount (₹1 - ₹500)</Label>
+            <Label htmlFor="amount">Amount (₹100 - ₹500)</Label>
             <Input
               id="amount"
               type="number"
-              min="1"
+              min="100"
               max="500"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
