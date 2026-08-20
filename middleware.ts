@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { db } from "@/db";
+import { userProfiles } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 const protectedRoutes = [
   "/bookings",
@@ -11,6 +14,15 @@ const protectedRoutes = [
   "/create-venue",
   "/profile",
 ];
+
+// Routes that require a city to be set (exclude /profile to avoid redirect loop)
+const cityRequiredRoutes = [
+  "/bookings",
+  "/my-bookings",
+  "/my-venues",
+  "/create-venue",
+];
+
 const authRoutes = ["/sign-in", "/sign-up"];
 
 export async function middleware(request: NextRequest) {
@@ -37,6 +49,22 @@ export async function middleware(request: NextRequest) {
   // If user is authenticated but trying to access auth routes
   if (session && authRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // City guard: redirect authenticated users without a city to /profile
+  if (session && cityRequiredRoutes.some((route) => pathname.startsWith(route))) {
+    try {
+      const profile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, session.user.id),
+        columns: { city: true },
+      });
+      if (!profile?.city) {
+        return NextResponse.redirect(new URL("/profile", request.url));
+      }
+    } catch (error) {
+      // If DB query fails, let the request through (don't block the user)
+      console.warn("City check failed:", error);
+    }
   }
 
   return NextResponse.next();
