@@ -1,6 +1,7 @@
 import React, { Suspense, use } from "react";
 import { getVenues, getAllSports } from "@/lib/actions/venues";
 import { getCurrentUser } from "@/lib/actions/users";
+import { getUserCity } from "@/lib/actions/cities";
 import {
   Card,
   CardContent,
@@ -47,6 +48,8 @@ const VenuesPage = async ({ searchParams }: VenuesPageProps) => {
   const ratingFilter = resolvedSearchParams.rating || "";
   const status = resolvedSearchParams.status || "approved";
 
+  const city = await getUserCity();
+
   const [userResult, venuesResult, sportsResult] = await Promise.all([
     getCurrentUser(),
     getVenues({
@@ -57,6 +60,7 @@ const VenuesPage = async ({ searchParams }: VenuesPageProps) => {
       locationFilter,
       ratingFilter,
       status,
+      city: city ?? undefined,
     }),
     getAllSports(),
   ]);
@@ -124,7 +128,9 @@ const VenuesPage = async ({ searchParams }: VenuesPageProps) => {
                   <p className="mb-4">
                     {searchQuery || sportFilter || locationFilter
                       ? "Try adjusting your filters to find more venues."
-                      : "No venues are available at the moment."}
+                      : city
+                        ? `No venues available in ${city} yet. Check back soon!`
+                        : "Please set your city in your profile to browse venues."}
                   </p>
                   {canCreateVenue && (
                     <Link href="/create-venue">

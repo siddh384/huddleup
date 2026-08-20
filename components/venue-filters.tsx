@@ -150,12 +150,12 @@ export function VenueFilters({
                 </div>
             </div>
 
-            {/* Location Filter */}
+            {/* Area Filter */}
             <div className="space-y-2">
-                <label className="text-sm font-medium">Location</label>
+                <label className="text-sm font-medium">Area</label>
                 <div className="pt-2">
                     <Input
-                        placeholder="Filter by location..."
+                        placeholder="Filter by area..."
                         value={locationInput}
                         onChange={(e) => setLocationInput(e.target.value)}
                     />
