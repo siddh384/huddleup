@@ -15,6 +15,13 @@
       "when": 1787213897268,
       "tag": "0001_omniscient_hammerhead",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787229593926,
+      "tag": "0002_smart_blink",
+      "breakpoints": true
     }
   ]
 }

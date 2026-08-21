@@ -181,6 +181,12 @@ const MyVenuesPage = async () => {
                       View
                     </Button>
                   </Link>
+                  <Link href={`/venues/${venue.id}/edit`} className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                  </Link>
                   <Link href={`/venues/${venue.id}/courts`} className="flex-1">
                     <Button variant="outline" size="sm" className="w-full">
                       <Building className="w-4 h-4 mr-2" />

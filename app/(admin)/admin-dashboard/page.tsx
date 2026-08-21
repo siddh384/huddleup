@@ -4,9 +4,6 @@ import { getAllReports, getReportsStats } from "@/lib/actions/reports";
 import { redirect } from "next/navigation";
 import { AdminDashboardClient } from "@/components/admin/admin-dashboard-client";
 
-// Force dynamic rendering for this page
-export const dynamic = "force-dynamic";
-
 export default async function AdminDashboardPage() {
   const userResult = await getCurrentUser();
 

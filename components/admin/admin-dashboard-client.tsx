@@ -28,6 +28,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   Home,
+  Edit,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -57,12 +58,22 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 import { UserRoleUpdater } from "@/components/user-role-updater";
 import { VenueStatusUpdater } from "@/components/venue-status-updater";
 import { ReportStatusUpdater } from "@/components/report-status-updater";
+
+// Deterministic date formatter (avoids server/client locale mismatch)
+const formatDate = (dateStr: string) => {
+  const d = new Date(dateStr);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+};
 
 // Types
 export type AdminStats = {
@@ -264,7 +275,7 @@ const userColumns: ColumnDef<UserData>[] = [
   {
     accessorKey: "createdAt",
     header: "Joined",
-    cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString(),
+    cell: ({ row }) => formatDate(row.getValue("createdAt")),
   },
   {
     id: "actions",
@@ -312,11 +323,38 @@ const venueColumns: ColumnDef<VenueData>[] = [
   {
     accessorKey: "createdAt",
     header: "Submitted",
-    cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString(),
+    cell: ({ row }) => formatDate(row.getValue("createdAt")),
   },
   {
     id: "actions",
-    cell: ({ row }) => <VenueStatusUpdater venueId={row.original.id} currentStatus={row.original.status} />,
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <VenueStatusUpdater venueId={row.original.id} currentStatus={row.original.status} />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem asChild>
+              <Link href={`/venues/${row.original.id}`}>
+                <Eye className="mr-2 h-4 w-4" />
+                View venue
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href={`/venues/${row.original.id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit venue
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    ),
   },
 ];
 
@@ -368,7 +406,7 @@ const reportColumns: ColumnDef<ReportData>[] = [
   {
     accessorKey: "createdAt",
     header: "Reported",
-    cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString(),
+    cell: ({ row }) => formatDate(row.getValue("createdAt")),
   },
   {
     id: "actions",
