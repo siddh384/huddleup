@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { MdOutlineSportsVolleyball } from "react-icons/md";
-import { ArrowUpRight } from "lucide-react";
+
+import { ArrowUpRight, Volleyball } from "lucide-react";
 import { Linkedin } from "lucide-react";
 import { Github } from "lucide-react";
 import { Twitter } from "lucide-react";
@@ -14,7 +14,7 @@ export const Footer = () => {
           {/* Left Side - Brand Section */}
           <div className="space-y-4 sm:space-y-6">
             <div className="flex items-center gap-2">
-              <MdOutlineSportsVolleyball className="size-6 sm:size-8 text-primary" />
+              <Volleyball className="size-6 sm:size-8 text-primary" />
               <span className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
                 HuddleUp
               </span>

@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { MdOutlineSportsVolleyball } from "react-icons/md";
+
 import { AuthStatus } from "./auth-status";
 import ThemeToggleButton from "@/components/ui/theme-toggle-button";
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, Volleyball, X } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { CitySwitcher } from "@/components/city-switcher";
 import { type City } from "@/lib/cities";
@@ -41,7 +41,7 @@ export const HomeNavbar = ({ city }: HomeNavbarProps) => {
             href="/"
             className="flex items-center gap-2 p-2 rounded-lg transition-colors"
           >
-            <MdOutlineSportsVolleyball className="size-7 text-primary" />
+            <Volleyball className="size-7 text-primary" />
             <span className="text-xl font-bold tracking-tight text-foreground hidden sm:block">
               HuddleUp
             </span>

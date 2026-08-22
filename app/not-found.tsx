@@ -25,14 +25,14 @@ export default function NotFound() {
           variants={fadeInDelayed}
           transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
         >
-          <p className="font-poppins uppercase font-semibold text-transparent bg-clip-text bg-gradient-to-b from-transparent to-[#C0C0C0] text-[92px] sm:text-[110px] md:text-[300px] text-8xl leading-[0.9] whitespace-normal">
+          <p className="uppercase font-semibold text-transparent bg-clip-text bg-gradient-to-b from-transparent to-[#C0C0C0] text-[92px] sm:text-[110px] md:text-[300px] text-8xl leading-[0.9] whitespace-normal">
             404
           </p>
         </motion.div>
 
         <div className="flex flex-col justify-center text-center mx-auto mt-2 text-white gap-2 z-10">
           <motion.h1
-            className="text-4xl mb-4 sm:text-8xl text-white font-bold font-poppins leading-tight"
+            className="text-4xl mb-4 sm:text-8xl text-white font-bold leading-tight"
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
@@ -41,7 +41,7 @@ export default function NotFound() {
             Oops! Page Not Found
           </motion.h1>
           <motion.p
-            className="font-poppins font-normal mx-auto text-center text-lg leading-tight w-full max-w-lg text-[#A3A3A3]"
+            className="font-normal mx-auto text-center text-lg leading-tight w-full max-w-lg text-[#A3A3A3]"
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
@@ -60,7 +60,7 @@ export default function NotFound() {
             <Link
               href="/"
               className="inline-flex px-8 py-3 bg-[#F5F5F5] text-black rounded-lg font-medium hover:bg-[#E5E5E5]
-                        transition-colors font-dmsans gap-2 items-center w-fit mx-auto"
+                        transition-colors gap-2 items-center w-fit mx-auto"
             >
               <HomeIcon className="text-lg text-black" />
               Back to Home

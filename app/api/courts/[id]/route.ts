@@ -3,10 +3,11 @@ import { updateCourt, deleteCourt, getCourtById } from "@/lib/actions/courts";
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const result = await getCourtById(params.id);
+        const { id } = await params;
+        const result = await getCourtById(id);
 
         if (!result.success) {
             return NextResponse.json(
@@ -30,12 +31,13 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const body = await request.json();
 
-        const result = await updateCourt(params.id, body);
+        const result = await updateCourt(id, body);
 
         if (!result.success) {
             return NextResponse.json(
@@ -59,10 +61,11 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const result = await deleteCourt(params.id);
+        const { id } = await params;
+        const result = await deleteCourt(id);
 
         if (!result.success) {
             return NextResponse.json(
