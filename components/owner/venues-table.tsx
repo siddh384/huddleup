@@ -3,18 +3,15 @@
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import {
-  CheckCircle,
-  Clock,
   Edit,
   Eye,
   MapPin,
-  MoreHorizontal,
   Settings,
   Trash2,
-  XCircle,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { RiMore2Fill } from "@remixicon/react";
+import { Chip } from "@/components/base/badges/chip";
+import { IconButton } from "@/components/base/buttons/icon-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +24,7 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card";
-import { DataTable } from "@/components/owner/data-table";
+import { DataTable } from "@/components/shared/data-table";
 import type { VenueData } from "@/components/owner/types";
 
 
@@ -54,34 +51,17 @@ const venueColumns: ColumnDef<VenueData>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
-      const statusConfig = {
-        approved: {
-          label: "Approved",
-          variant: "default" as const,
-          icon: CheckCircle,
-        },
-        pending: {
-          label: "Pending",
-          variant: "secondary" as const,
-          icon: Clock,
-        },
-        rejected: {
-          label: "Rejected",
-          variant: "destructive" as const,
-          icon: XCircle,
-        },
+      const config = {
+        approved: { label: "Approved", color: "lime" as const },
+        pending: { label: "Pending", color: "yellow" as const },
+        rejected: { label: "Rejected", color: "rose" as const },
       };
-      const config = statusConfig[status as keyof typeof statusConfig];
-      const Icon = config?.icon;
+      const chip = config[status as keyof typeof config];
 
       return (
-        <Badge
-          variant={config?.variant || "default"}
-          className="flex items-center gap-1"
-        >
-          {Icon && <Icon className="h-3 w-3" />}
-          {config?.label || status}
-        </Badge>
+        <Chip color={chip?.color ?? "neutral"}>
+          {chip?.label ?? status}
+        </Chip>
       );
     },
   },
@@ -114,10 +94,11 @@ const venueColumns: ColumnDef<VenueData>[] = [
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
+            <IconButton
+              icon={RiMore2Fill}
+              size="small"
+              aria-label="Open venue actions"
+            />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>

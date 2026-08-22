@@ -14,8 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import type { SortDescriptor } from "react-aria-components";
-import { ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { RiArrowDownSLine } from "@remixicon/react";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -31,15 +30,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/base/table/table";
+import { Button } from "@/components/base/buttons/button";
+import { CloseButton } from "@/components/base/buttons/close-button";
+import { CheckboxGlyph } from "@/components/base/checkbox/checkbox-glyph";
+import { Pagination } from "@/components/base/pagination/pagination";
 import {
   ChevronSortDown,
   ChevronUpDownSmall,
 } from "@/components/foundations/icons/chevrons";
 import { cn } from "@/lib/utils";
 
-// TanStack state (sorting/filtering/pagination) rendered through BoardUI's
-// React Aria table primitives. Sort clicks come from React Aria's native
-// column sorting and are mapped onto TanStack's sorting state.
+// TanStack state (sorting/filtering/pagination/selection) rendered through
+// BoardUI's React Aria table primitives. Sort clicks come from React Aria's
+// native column sorting and are mapped onto TanStack's sorting state.
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -58,9 +61,71 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
+  // Row-selection toggle rendered as a plain button + BoardUI glyph. A React
+// Aria Checkbox can't be used here: inside a RAC Table it must occupy the
+// table's "selection" slot, which hands state ownership to the table. This
+// keeps TanStack as the single source of selection truth.
+function SelectionCheckbox({
+  isSelected,
+  isIndeterminate = false,
+  onToggle,
+  label,
+}: {
+  isSelected: boolean;
+  isIndeterminate?: boolean;
+  onToggle: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={isIndeterminate ? "mixed" : isSelected}
+      aria-label={label}
+      onClick={onToggle}
+      className="flex cursor-pointer items-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring focus-visible:ring-offset-2"
+    >
+      <CheckboxGlyph
+        state={{
+          isSelected,
+          isIndeterminate,
+          isFocusVisible: false,
+          isDisabled: false,
+          isHovered: false,
+        }}
+      />
+    </button>
+  );
+}
+
+// Leading row-selection column; closures reference `table` after creation.
+  const selectionColumn: ColumnDef<TData, undefined> = {
+    id: "select",
+    enableSorting: false,
+    enableHiding: false,
+    header: () => {
+      const allSelected = table.getIsAllRowsSelected();
+      return (
+        <SelectionCheckbox
+          isSelected={allSelected}
+          isIndeterminate={table.getIsSomeRowsSelected() && !allSelected}
+          onToggle={() => table.toggleAllRowsSelected(!allSelected)}
+          label="Select all rows"
+        />
+      );
+    },
+    cell: ({ row }) => (
+      <SelectionCheckbox
+        isSelected={row.getIsSelected()}
+        onToggle={() => row.toggleSelected()}
+        label="Select row"
+      />
+    ),
+  };
+
   const table = useReactTable({
     data,
-    columns,
+    columns: [selectionColumn, ...columns],
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -94,23 +159,42 @@ export function DataTable<TData, TValue>({
     }
   };
 
+  const filterValue =
+    (table.getColumn(filterColumn)?.getFilterValue() as string) ?? "";
+  const hasFilter = filterValue.length > 0;
+
   return (
     <div className="w-full">
-      <div className="flex items-center pb-3">
-        <Input
-          placeholder={filterPlaceholder}
-          value={
-            (table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""
-          }
-          onChange={(event) =>
-            table.getColumn(filterColumn)?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
+      <div className="flex items-center gap-2 pb-3">
+        <div className="relative max-w-sm flex-1">
+          <Input
+            placeholder={filterPlaceholder}
+            value={filterValue}
+            onChange={(event) =>
+              table
+                .getColumn(filterColumn)
+                ?.setFilterValue(event.target.value)
+            }
+            className="w-full pr-7"
+          />
+          {hasFilter && (
+            <CloseButton
+              size="2xs"
+              aria-label="Clear filter"
+              onClick={() => table.getColumn(filterColumn)?.setFilterValue("")}
+              className="absolute top-1/2 right-2 -translate-y-1/2"
+            />
+          )}
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+            <Button
+              variant="secondary"
+              size="small"
+              trailingIcon={RiArrowDownSLine}
+              className="ml-auto"
+            >
+              Columns
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -185,29 +269,17 @@ export function DataTable<TData, TValue>({
           ))}
         </TableBody>
       </Table>
-      <div className="flex items-center justify-end space-x-2 pt-4">
+      <div className="flex items-center justify-between gap-4 pt-4">
         <div className="text-muted-foreground flex-1 text-sm">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
+        <Pagination
+          page={table.getState().pagination.pageIndex + 1}
+          totalPages={Math.max(1, table.getPageCount())}
+          onChange={(page) => table.setPageIndex(page - 1)}
+          className="w-auto"
+        />
       </div>
     </div>
   );

@@ -2,14 +2,8 @@
 
 import { useState } from "react";
 import { updateUserRole } from "@/lib/actions/users";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/base/buttons/button";
+import { Select, SelectItem } from "@/components/base/select/select";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -54,24 +48,30 @@ export function UserRoleUpdater({ userId, currentRole }: UserRoleUpdaterProps) {
 
   return (
     <div className="flex items-center space-x-2">
-      <Select value={selectedRole} onValueChange={setSelectedRole}>
-        <SelectTrigger className="w-40">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="user">User</SelectItem>
-          <SelectItem value="facility_owner">Facility Owner</SelectItem>
-          <SelectItem value="admin">Admin</SelectItem>
-        </SelectContent>
+      <Select
+        className="w-44"
+        size="sm"
+        selectedKey={selectedRole}
+        onSelectionChange={(key) => {
+          if (key !== null) setSelectedRole(String(key));
+        }}
+      >
+        <SelectItem id="user">User</SelectItem>
+        <SelectItem id="facility_owner">Facility Owner</SelectItem>
+        <SelectItem id="admin">Admin</SelectItem>
       </Select>
 
       <Button
         onClick={handleRoleUpdate}
         disabled={isUpdating || selectedRole === currentRole}
-        variant="outline"
-        size="sm"
+        variant="secondary"
+        size="small"
       >
-        {isUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : "Update"}
+        {isUpdating ? (
+          <Loader2 className="size-3.5 animate-spin" />
+        ) : (
+          "Update"
+        )}
       </Button>
     </div>
   );

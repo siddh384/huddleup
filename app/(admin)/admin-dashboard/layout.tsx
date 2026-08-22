@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/actions/users";
-import { OwnerSidebar } from "@/components/owner/owner-sidebar";
+import { AdminSidebar } from "@/components/admin/admin-sidebar";
 
 export const dynamic = "force-dynamic";
 
-export default async function OwnerDashboardLayout({
+export default async function AdminDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -15,10 +15,7 @@ export default async function OwnerDashboardLayout({
     redirect("/sign-in");
   }
 
-  if (
-    userResult.user.role !== "facility_owner" &&
-    userResult.user.role !== "admin"
-  ) {
+  if (userResult.user.role !== "admin") {
     redirect("/");
   }
 
@@ -30,7 +27,7 @@ export default async function OwnerDashboardLayout({
   return (
     <div className="flex min-h-screen bg-background-full">
       <div className="sticky top-0 hidden h-screen p-3 md:block">
-        <OwnerSidebar user={user} />
+        <AdminSidebar user={user} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">

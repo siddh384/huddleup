@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { CheckCircle, XCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Chip } from "@/components/base/badges/chip";
 import {
   Card,
   CardContent,
 } from "@/components/ui/card";
-import { DataTable } from "@/components/owner/data-table";
+import { DataTable } from "@/components/shared/data-table";
 import type { BookingData } from "@/components/owner/types";
 
 
@@ -48,9 +47,9 @@ const bookingColumns: ColumnDef<BookingData>[] = [
     accessorKey: "sportName",
     header: "Sport",
     cell: ({ row }) => (
-      <Badge variant="outline" className="text-xs">
+      <Chip variant="caption" color="gray">
         {row.original.sportName || "N/A"}
-      </Badge>
+      </Chip>
     ),
   },
   {
@@ -73,34 +72,17 @@ const bookingColumns: ColumnDef<BookingData>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
-      const statusConfig = {
-        confirmed: {
-          label: "Confirmed",
-          variant: "default" as const,
-          icon: CheckCircle,
-        },
-        cancelled: {
-          label: "Cancelled",
-          variant: "destructive" as const,
-          icon: XCircle,
-        },
-        completed: {
-          label: "Completed",
-          variant: "secondary" as const,
-          icon: CheckCircle,
-        },
+      const config = {
+        confirmed: { label: "Confirmed", color: "lime" as const },
+        cancelled: { label: "Cancelled", color: "rose" as const },
+        completed: { label: "Completed", color: "blue" as const },
       };
-      const config = statusConfig[status as keyof typeof statusConfig];
-      const Icon = config?.icon;
+      const chip = config[status as keyof typeof config];
 
       return (
-        <Badge
-          variant={config?.variant || "default"}
-          className="flex items-center gap-1"
-        >
-          {Icon && <Icon className="h-3 w-3" />}
-          {config?.label || status}
-        </Badge>
+        <Chip color={chip?.color ?? "neutral"}>
+          {chip?.label ?? status}
+        </Chip>
       );
     },
   },

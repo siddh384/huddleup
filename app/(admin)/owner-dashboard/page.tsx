@@ -1,6 +1,5 @@
-import Link from "next/link";
-import { Home, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { RiAddLine, RiHomeLine } from "@remixicon/react";
+import { ButtonLink } from "@/components/base/buttons/button";
 import { getUserVenues } from "@/lib/actions/venues";
 import { OverviewStats } from "@/components/owner/overview-stats";
 
@@ -30,27 +29,16 @@ export default async function OwnerOverviewPage() {
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button
-            asChild
-            size="lg"
-            className="shadow-md hover:shadow-lg transition-shadow"
+          <ButtonLink href="/create-venue" leadingIcon={RiAddLine}>
+            Create New Venue
+          </ButtonLink>
+          <ButtonLink
+            href="/"
+            variant="secondary"
+            leadingIcon={RiHomeLine}
           >
-            <Link href="/create-venue">
-              <Plus className="mr-2 h-5 w-5" />
-              Create New Venue
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="shadow-md hover:shadow-lg transition-shadow"
-          >
-            <Link href="/">
-              <Home className="mr-2 h-5 w-5" />
-              Back to Home
-            </Link>
-          </Button>
+            Back to Home
+          </ButtonLink>
         </div>
       </div>
 
