@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.firecrawl/
+
+# local notes and agent workspace
+todo.md
+.zcode/
+docs/superpowers/
