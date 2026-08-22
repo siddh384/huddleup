@@ -2,30 +2,23 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import {
+  RiAddLine,
+  RiCloseLine,
+  RiLoader4Line,
+} from "@remixicon/react";
 import { createVenue, getAllSports } from "@/lib/actions/venues";
 import { UploadButton } from "@/lib/uploadthing";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button, ButtonLink } from "@/components/base/buttons/button";
+import { Input } from "@/components/base/input/input";
+import { Textarea } from "@/components/base/input/textarea";
+import { SelectItem } from "@/components/base/select/select";
+import { SelectField } from "@/components/base/select/select-field";
+import { Checkbox } from "@/components/base/checkbox/checkbox";
+import { Chip } from "@/components/base/badges/chip";
 import { toast } from "sonner";
-import { Loader2, X, Upload, ImageIcon } from "lucide-react";
 import { CITIES, type City } from "@/lib/cities";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface Sport {
   id: string;
@@ -33,12 +26,17 @@ interface Sport {
   description?: string | null;
 }
 
+type FieldErrors = Partial<
+  Record<"name" | "address" | "location" | "city" | "sports", string>
+>;
+
 export function CreateVenueForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sports, setSports] = useState<Sport[]>([]);
   const [loadingSports, setLoadingSports] = useState(true);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   const [formData, setFormData] = useState({
     name: "",
@@ -60,7 +58,7 @@ export function CreateVenueForm() {
         } else {
           toast.error("Failed to load sports");
         }
-      } catch (error) {
+      } catch {
         toast.error("Error loading sports");
       } finally {
         setLoadingSports(false);
@@ -69,11 +67,12 @@ export function CreateVenueForm() {
     loadSports();
   }, []);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
   const handleSportToggle = (sportId: string) => {
@@ -83,6 +82,7 @@ export function CreateVenueForm() {
         ? prev.selectedSports.filter((id) => id !== sportId)
         : [...prev.selectedSports, sportId],
     }));
+    setErrors((prev) => ({ ...prev, sports: undefined }));
   };
 
   const handleRemoveImage = (imageUrl: string) => {
@@ -92,28 +92,25 @@ export function CreateVenueForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const nextErrors: FieldErrors = {};
     if (!formData.name.trim()) {
-      toast.error("Venue name is required");
-      return;
+      nextErrors.name = "Venue name is required.";
     }
-
     if (!formData.address.trim()) {
-      toast.error("Address is required");
-      return;
+      nextErrors.address = "Full address is required.";
     }
-
     if (!formData.location.trim()) {
-      toast.error("Location is required");
-      return;
+      nextErrors.location = "Area or neighborhood is required.";
     }
-
     if (!formData.city) {
-      toast.error("Please select a city");
-      return;
+      nextErrors.city = "Select a city.";
+    }
+    if (formData.selectedSports.length === 0) {
+      nextErrors.sports = "Select at least one sport.";
     }
 
-    if (formData.selectedSports.length === 0) {
-      toast.error("Please select at least one sport");
+    if (Object.values(nextErrors).some(Boolean)) {
+      setErrors(nextErrors);
       return;
     }
 
@@ -152,13 +149,14 @@ export function CreateVenueForm() {
           selectedSports: [],
         });
         setUploadedImages([]);
+        setErrors({});
 
         // Redirect to dashboard
         router.push("/");
       } else {
         toast.error(result.error || "Failed to create venue");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while creating the venue");
     } finally {
       setIsSubmitting(false);
@@ -167,178 +165,182 @@ export function CreateVenueForm() {
 
   if (loadingSports) {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin" />
-          <span className="ml-2">Loading...</span>
+      <Card className="w-full border-0 py-0 shadow-lg">
+        <CardContent className="flex items-center justify-center gap-2.5 py-16">
+          <RiLoader4Line className="size-5 animate-spin text-muted-foreground" />
+          <span className="text-body-regular text-muted-foreground">
+            Loading sports…
+          </span>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Create New Venue</CardTitle>
-        <CardDescription>
-          Fill out the details below to create your sports venue. It will be
-          reviewed by an admin before being published.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <div className="space-y-4">
-            <div>
-              <Label className="pb-1.5" htmlFor="name">
-                Venue Name *
-              </Label>
+    <Card className="w-full border-0 py-0 shadow-lg">
+      <CardContent className="p-6 sm:p-8">
+        <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10">
+          {/* Venue details */}
+          <section className="space-y-5">
+            <div className="space-y-1">
+              <h2 className="text-title-3-semibold">Venue details</h2>
+              <p className="text-body-2-regular text-muted-foreground">
+                The basics players see when they find your venue.
+              </p>
+            </div>
+            <div className="grid gap-5 md:grid-cols-2 md:gap-x-6">
               <Input
-                id="name"
+                label="Venue name"
+                placeholder="e.g., Sunrise Sports Arena"
                 value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="Enter venue name"
-                required
+                onChange={(value) => handleInputChange("name", value)}
+                isRequired
+                isInvalid={!!errors.name}
+                hint={errors.name}
               />
-            </div>
-
-            <div>
-              <Label className="pb-1.5" htmlFor="description">
-                Description
-              </Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  handleInputChange("description", e.target.value)
-                }
-                placeholder="Describe your venue, facilities, and what makes it special"
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label className="pb-1.5" htmlFor="address">
-                Full Address *
-              </Label>
-              <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange("address", e.target.value)}
-                placeholder="Enter complete address with street, city, state, postal code"
-                rows={2}
-                required
-              />
-            </div>
-
-            <div>
-              <Label className="pb-1.5" htmlFor="city">
-                City <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.city}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, city: value as City }))
-                }
+              <SelectField
+                label="City"
+                placeholder="Select city"
+                selectedKey={formData.city || null}
+                onSelectionChange={(key) => {
+                  handleInputChange("city", String(key));
+                }}
+                isRequired
+                isInvalid={!!errors.city}
+                hint={errors.city}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select city" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CITIES.map((city) => (
-                    <SelectItem key={city} value={city}>
-                      {city}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {CITIES.map((city) => (
+                  <SelectItem key={city} id={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectField>
+              <div className="md:col-span-2">
+                <Textarea
+                  label="Description"
+                  placeholder="Describe your venue, facilities, and what makes it special"
+                  value={formData.description}
+                  onChange={(value) => handleInputChange("description", value)}
+                  rows={4}
+                />
+              </div>
             </div>
+          </section>
 
-            <div>
-              <Label className="pb-1.5" htmlFor="location">
-                Area/Neighborhood *
-              </Label>
+          {/* Location */}
+          <section className="space-y-5 border-t pt-8 sm:pt-10">
+            <div className="space-y-1">
+              <h2 className="text-title-3-semibold">Location</h2>
+              <p className="text-body-2-regular text-muted-foreground">
+                Where players will find you, and what is on site.
+              </p>
+            </div>
+            <div className="grid gap-5 md:grid-cols-2 md:gap-x-6">
+              <div className="md:col-span-2">
+                <Textarea
+                  label="Full address"
+                  placeholder="Street, area, city, state, postal code"
+                  value={formData.address}
+                  onChange={(value) => handleInputChange("address", value)}
+                  rows={2}
+                  isRequired
+                  isInvalid={!!errors.address}
+                  hint={errors.address}
+                />
+              </div>
               <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => handleInputChange("location", e.target.value)}
+                label="Area / neighborhood"
                 placeholder="e.g., Alkapuri, SG Highway, Vesu"
-                required
+                value={formData.location}
+                onChange={(value) => handleInputChange("location", value)}
+                isRequired
+                isInvalid={!!errors.location}
+                hint={errors.location}
               />
-            </div>
-
-            <div>
-              <Label className="pb-1.5" htmlFor="amenities">
-                Amenities
-              </Label>
               <Input
-                id="amenities"
+                label="Amenities"
+                placeholder="Parking, Lockers, Showers, Snack Bar"
                 value={formData.amenities}
-                onChange={(e) => handleInputChange("amenities", e.target.value)}
-                placeholder="Separate amenities with commas (e.g., Parking, Lockers, Showers, Snack Bar)"
+                onChange={(value) => handleInputChange("amenities", value)}
+                hint="Separate amenities with commas."
               />
             </div>
-          </div>
+          </section>
 
-          {/* Sports Selection */}
-          <div>
-            <Label className="pb-1.5">Sports Available *</Label>
-            <p className="text-sm text-muted-foreground mb-3">
-              Select all sports that will be available at your venue
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {/* Sports */}
+          <section className="space-y-5 border-t pt-8 sm:pt-10">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <h2 className="flex items-center gap-0.5 text-title-3-semibold">
+                  Sports available
+                  <span className="text-body-medium text-text-error-primary">
+                    *
+                  </span>
+                </h2>
+                <p className="text-body-2-regular text-muted-foreground">
+                  Select all sports that will be available at your venue.
+                </p>
+              </div>
+              {formData.selectedSports.length > 0 && (
+                <Chip variant="caption" color="blue">
+                  {formData.selectedSports.length} selected
+                </Chip>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 xl:grid-cols-4">
               {sports.map((sport) => (
-                <div key={sport.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={sport.id}
-                    checked={formData.selectedSports.includes(sport.id)}
-                    onCheckedChange={() => handleSportToggle(sport.id)}
-                  />
-                  <Label
-                    htmlFor={sport.id}
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    {sport.name}
-                  </Label>
-                </div>
+                <Checkbox
+                  key={sport.id}
+                  isSelected={formData.selectedSports.includes(sport.id)}
+                  onChange={() => handleSportToggle(sport.id)}
+                >
+                  {sport.name}
+                </Checkbox>
               ))}
             </div>
-          </div>
+            {errors.sports && (
+              <p className="pt-px text-caption-1-medium text-text-error-primary">
+                {errors.sports}
+              </p>
+            )}
+          </section>
 
-          {/* Image Upload */}
-          <div>
-            <Label>Venue Images</Label>
-            <p className="text-sm text-muted-foreground mb-3">
-              Upload up to 5 images of your venue (4MB max per image)
-            </p>
+          {/* Photos */}
+          <section className="space-y-5 border-t pt-8 sm:pt-10">
+            <div className="space-y-1">
+              <h2 className="text-title-3-semibold">Photos</h2>
+              <p className="text-body-2-regular text-muted-foreground">
+                Upload up to 5 images of your venue (4MB max per image).
+              </p>
+            </div>
 
-            {/* Display uploaded images */}
             {uploadedImages.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
                 {uploadedImages.map((imageUrl, index) => (
-                  <div key={index} className="relative group">
+                  <div key={index} className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={imageUrl}
                       alt={`Venue image ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg"
+                      className="h-20 w-full rounded-xl object-cover"
                     />
                     <Button
                       type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      iconOnly
+                      variant="ghost"
+                      size="xs"
+                      leadingIcon={RiCloseLine}
+                      aria-label={`Remove image ${index + 1}`}
                       onClick={() => handleRemoveImage(imageUrl)}
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
+                      className="absolute right-1.5 top-1.5 bg-black/55 text-white hover:bg-black/75"
+                    />
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Upload button */}
             {uploadedImages.length < 5 && (
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+              <div className="flex justify-center rounded-2lg border border-dashed border-border-button-default bg-background-secondary-default p-6">
                 <UploadButton
                   endpoint="imageUploader"
                   onClientUploadComplete={(res) => {
@@ -355,25 +357,35 @@ export function CreateVenueForm() {
                   }}
                   appearance={{
                     button:
-                      "bg-primary text-primary-foreground hover:bg-primary/90",
-                    allowedContent: "text-muted-foreground",
+                      "ut-button:h-9 ut-button:rounded-2lg ut-button:bg-accent-600 ut-button:px-4 ut-button:text-body-medium ut-button:font-medium ut-button:text-white ut-button:hover:bg-accent-500",
+                    allowedContent:
+                      "text-caption-1-regular text-muted-foreground",
                   }}
                 />
               </div>
             )}
-          </div>
+          </section>
 
-          {/* Submit Button */}
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Creating Venue...
-              </>
-            ) : (
-              "Create Venue"
-            )}
-          </Button>
+          {/* Actions */}
+          <div className="flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-end">
+            <ButtonLink href="/" variant="secondary">
+              Cancel
+            </ButtonLink>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              leadingIcon={RiAddLine}
+            >
+              {isSubmitting ? (
+                <>
+                  <RiLoader4Line className="size-4 animate-spin" />
+                  Creating venue…
+                </>
+              ) : (
+                "Create venue"
+              )}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>
