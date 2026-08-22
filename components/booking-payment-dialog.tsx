@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CreditCard, Loader2 } from "lucide-react";
@@ -44,7 +44,6 @@ export function BookingPaymentDialog({
       const result = await payForBooking(numAmount, bookingId);
 
       if (result.success && result.checkoutUrl) {
-        // Redirect to payment page
         window.location.href = result.checkoutUrl;
       } else {
         toast.error(result.error || "Payment failed. Please try again.");
@@ -59,8 +58,8 @@ export function BookingPaymentDialog({
 
   if (isDisabled) {
     return (
-      <Button disabled variant="outline" size="sm" className="w-full">
-        <CreditCard className="w-4 h-4 mr-2" />
+      <Button disabled variant="secondary" size="small" className="flex-1">
+        <CreditCard className="size-4" />
         Paid
       </Button>
     );
@@ -69,8 +68,8 @@ export function BookingPaymentDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default" size="sm" className="w-full">
-          <CreditCard className="w-4 h-4 mr-2" />
+        <Button variant="primary" size="small" className="flex-1">
+          <CreditCard className="size-4" />
           Pay Now
         </Button>
       </DialogTrigger>
@@ -97,16 +96,18 @@ export function BookingPaymentDialog({
           <Button
             onClick={handlePayment}
             disabled={isLoading}
+            variant="primary"
+            size="medium"
             className="w-full"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
                 Processing...
               </>
             ) : (
               <>
-                <CreditCard className="w-4 h-4 mr-2" />
+                <CreditCard className="size-4" />
                 Pay ₹{amount}
               </>
             )}
