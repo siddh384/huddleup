@@ -9,7 +9,6 @@ interface VenueData {
   id: string
   name: string
   location: string
-  price: number
   rating: number | string | null
   images: string[] | null
   venueSports: Array<{ sport: { id: string; name: string } }>
@@ -98,16 +97,15 @@ export function RecentlyVisited() {
         {venues.map((venue) => (
           <VenueCard
             key={venue.id}
-            venue={{
-              id: venue.id,
-              name: venue.name,
-              location: venue.location,
-              price: venue.price,
-              rating: venue.rating,
-              images: venue.images,
-              venueSports: venue.venueSports,
-              status: 'approved',
-            }}
+              venue={{
+                id: venue.id,
+                name: venue.name,
+                location: venue.location,
+                rating: venue.rating,
+                images: venue.images,
+                venueSports: venue.venueSports,
+                status: 'approved',
+              }}
             variant="compact"
           />
         ))}

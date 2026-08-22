@@ -3,15 +3,16 @@ import { getVenueCourts, getVenueSports } from "@/lib/actions/courts";
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const { searchParams } = new URL(request.url);
         const type = searchParams.get('type');
 
         if (type === 'sports') {
             // Get available sports for the venue
-            const result = await getVenueSports(params.id);
+            const result = await getVenueSports(id);
 
             if (!result.success) {
                 return NextResponse.json(
@@ -26,7 +27,7 @@ export async function GET(
             );
         } else {
             // Get courts for the venue
-            const result = await getVenueCourts(params.id);
+            const result = await getVenueCourts(id);
 
             if (!result.success) {
                 return NextResponse.json(
