@@ -65,11 +65,6 @@ export function VenueGrid({
 
     return (
         <div className="space-y-6">
-            {/* Results Count */}
-            <div className="text-sm text-muted-foreground">
-                {venues.length} venue{venues.length !== 1 ? 's' : ''} found
-            </div>
-
             {/* Venues Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
                 {venues.map((venue) => (
