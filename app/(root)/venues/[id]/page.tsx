@@ -33,6 +33,7 @@ import { notFound } from "next/navigation";
 import BookingDialog from "@/components/booking-dialog";
 import ReviewsSection from "@/components/reviews-section";
 import { VenueVisitTracker } from "@/components/venue-visit-tracker";
+import { ExpandableDescription } from "@/components/expandable-description";
 
 // Force dynamic rendering for this page
 export const dynamic = "force-dynamic";
@@ -175,9 +176,7 @@ const VenueDetailsPage = async ({ params }: VenueDetailsPageProps) => {
 
           {/* Venue Description */}
           {venue.description && (
-            <p className="max-w-prose text-body-regular leading-relaxed text-text-secondary">
-              {venue.description}
-            </p>
+            <ExpandableDescription text={venue.description} />
           )}
 
           {/* Location Section */}

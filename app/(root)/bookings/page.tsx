@@ -89,8 +89,16 @@ const BookingsPage = async () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {bookings.map((booking) => {
+            const venueImages = booking.court.venue.images;
+            const venueImage =
+              venueImages && venueImages.length > 0
+                ? venueImages[0]
+                : null;
             const sportKey = booking.court.sport.name.toLowerCase();
-            const sportImage = SPORT_IMAGE_MAP[sportKey] || "/court.png";
+            const cardImage =
+              venueImage ||
+              SPORT_IMAGE_MAP[sportKey] ||
+              "/court.png";
             const bookingDate = new Date(booking.bookingDate);
             const timing = getTimingStatus(
               bookingDate,
@@ -106,8 +114,8 @@ const BookingsPage = async () => {
                 {/* Hero Image — same height as /venues cards */}
                 <div className="relative w-full h-[220px] sm:h-[260px] md:h-[280px] shrink-0">
                   <Image
-                    src={sportImage}
-                    alt={booking.court.sport.name}
+                    src={cardImage}
+                    alt={booking.court.venue.name}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
