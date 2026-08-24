@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,8 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Sport {
@@ -114,7 +113,6 @@ export function CourtForm({
         onSuccess();
       } else {
         router.refresh();
-        // Reset form for new court creation
         if (!court) {
           setFormData({
             name: "",
@@ -149,31 +147,36 @@ export function CourtForm({
   const timeOptions = generateTimeOptions();
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Court Name */}
-        <div className="space-y-2">
-          <Label htmlFor="name">Court Name *</Label>
+    <form onSubmit={handleSubmit}>
+      <div className="grid grid-cols-1 gap-x-4 gap-y-7 sm:grid-cols-2">
+        {/* Court Name — wider, spans full width */}
+        <div className="sm:col-span-2 space-y-2">
+          <Label htmlFor="name" className="text-body-medium text-text-primary">
+            Court Name *
+          </Label>
           <Input
             id="name"
             type="text"
-            placeholder="e.g., Court 1, Main Court"
+            placeholder="e.g. Court 1, Main Court"
             value={formData.name}
             onChange={(e) => handleInputChange("name", e.target.value)}
             required
+            className="h-10"
           />
         </div>
 
         {/* Sport */}
         <div className="space-y-2">
-          <Label htmlFor="sport">Sport *</Label>
+          <Label htmlFor="sport" className="text-body-medium text-text-primary">
+            Sport *
+          </Label>
           <Select
             value={formData.sportId}
             onValueChange={(value) => handleInputChange("sportId", value)}
             required
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a sport" />
+            <SelectTrigger className="h-10">
+              <SelectValue placeholder="Select sport" />
             </SelectTrigger>
             <SelectContent>
               {availableSports.map((sport) => (
@@ -187,22 +190,30 @@ export function CourtForm({
 
         {/* Price Per Hour */}
         <div className="space-y-2">
-          <Label htmlFor="price">Price per Hour ($) *</Label>
+          <Label htmlFor="price" className="text-body-medium text-text-primary">
+            Price (per hour) *
+          </Label>
           <Input
             id="price"
             type="number"
             step="0.01"
             min="0"
-            placeholder="25.00"
+            placeholder="e.g. 500"
             value={formData.pricePerHour}
             onChange={(e) => handleInputChange("pricePerHour", e.target.value)}
             required
+            className="h-10"
           />
         </div>
 
-        {/* Operating Hours Start */}
+        {/* Opening Time */}
         <div className="space-y-2">
-          <Label htmlFor="startTime">Opening Time *</Label>
+          <Label
+            htmlFor="startTime"
+            className="text-body-medium text-text-primary"
+          >
+            Opening Time *
+          </Label>
           <Select
             value={formData.operatingHoursStart}
             onValueChange={(value) =>
@@ -210,7 +221,7 @@ export function CourtForm({
             }
             required
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-10">
               <SelectValue placeholder="Select opening time" />
             </SelectTrigger>
             <SelectContent>
@@ -223,9 +234,14 @@ export function CourtForm({
           </Select>
         </div>
 
-        {/* Operating Hours End */}
+        {/* Closing Time */}
         <div className="space-y-2">
-          <Label htmlFor="endTime">Closing Time *</Label>
+          <Label
+            htmlFor="endTime"
+            className="text-body-medium text-text-primary"
+          >
+            Closing Time *
+          </Label>
           <Select
             value={formData.operatingHoursEnd}
             onValueChange={(value) =>
@@ -233,7 +249,7 @@ export function CourtForm({
             }
             required
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-10">
               <SelectValue placeholder="Select closing time" />
             </SelectTrigger>
             <SelectContent>
@@ -247,19 +263,18 @@ export function CourtForm({
         </div>
       </div>
 
-      {/* Submit Button */}
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isLoading}>
+      {/* Submit button — bottom-left */}
+      <div className="flex justify-start mt-5">
+        <Button type="submit" disabled={isLoading} variant="primary">
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               {court ? "Updating..." : "Creating..."}
             </>
+          ) : court ? (
+            "Update Court"
           ) : (
-            <>
-              <Plus className="w-4 h-4 mr-2" />
-              {court ? "Update Court" : "Create Court"}
-            </>
+            "Create Court"
           )}
         </Button>
       </div>
