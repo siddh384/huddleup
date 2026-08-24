@@ -2,15 +2,8 @@
 "use client";
 
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Chip } from "@/components/base/badges/chip";
+import { Button } from "@/components/base/buttons/button";
 import { CalendarDays, MapPin, MessageSquare } from "lucide-react";
 
 interface UserReport {
@@ -44,123 +37,110 @@ interface UserReportsSectionProps {
   pagination?: Pagination;
 }
 
+const statusChipColor = (
+  status: string | null,
+): "yellow" | "lime" | "neutral" | "gray" => {
+  switch (status) {
+    case "pending":
+      return "yellow";
+    case "resolved":
+      return "lime";
+    case "dismissed":
+      return "neutral";
+    default:
+      return "gray";
+  }
+};
+
+const getStatusText = (status: string | null) => {
+  switch (status) {
+    case "pending":
+      return "Under Review";
+    case "resolved":
+      return "Resolved";
+    case "dismissed":
+      return "Dismissed";
+    default:
+      return status || "Unknown";
+  }
+};
+
+const formatDate = (dateString: Date | string) => {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 export function UserReportsSection({
   initialReports,
   pagination,
 }: UserReportsSectionProps) {
   const [reports] = useState<UserReport[]>(initialReports);
 
-  const getStatusColor = (status: string | null) => {
-    switch (status) {
-      case "pending":
-        return "warning";
-      case "resolved":
-        return "success";
-      case "dismissed":
-        return "secondary";
-      default:
-        return "default";
-    }
-  };
-
-  const getStatusText = (status: string | null) => {
-    switch (status) {
-      case "pending":
-        return "Under Review";
-      case "resolved":
-        return "Resolved";
-      case "dismissed":
-        return "Dismissed";
-      default:
-        return status || "Unknown";
-    }
-  };
-
-  const formatDate = (dateString: Date | string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   if (reports.length === 0) {
     return (
-      <div className="text-center py-8">
-        <MessageSquare className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-semibold text-gray-600 mb-2">
+      <div className="flex flex-col items-center py-12">
+        <MessageSquare className="size-10 text-foreground-icon-disabled mb-3" />
+        <h3 className="text-headline-semibold text-text-primary mb-1">
           No Reports Yet
         </h3>
-        <p className="text-gray-500">
-          You haven&apos;t submitted any reports yet. Use the &ldquo;Report an Issue&ldquo; tab
-          to submit your first report.
+        <p className="text-body-regular text-text-secondary">
+          You haven&apos;t submitted any reports yet. Use the &ldquo;Report an
+          Issue&rdquo; tab to submit your first report.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {reports.map((report) => (
-        <Card key={report.id} className="border-l-4 border-l-blue-200">
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-lg">{report.reason}</CardTitle>
-                <div className="flex items-center space-x-4 text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <CalendarDays className="w-4 h-4 mr-1" />
-                    {formatDate(report.createdAt)}
+        <div
+          key={report.id}
+          className="rounded-3xl border border-border bg-background-primary-default p-5 shadow-xs"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-title-3-semibold text-text-primary truncate">
+                {report.reason}
+              </h3>
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <div className="flex items-center gap-1 text-body-2-regular text-text-secondary">
+                  <CalendarDays className="size-3.5 shrink-0" />
+                  {formatDate(report.createdAt)}
+                </div>
+                {report.reportedVenue && (
+                  <div className="flex items-center gap-1 text-body-2-regular text-text-secondary">
+                    <MapPin className="size-3.5 shrink-0" />
+                    {report.reportedVenue.name}
                   </div>
-                  {report.reportedVenue && (
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {report.reportedVenue.name}
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
-              <Badge variant={getStatusColor(report.status) as any}>
-                {getStatusText(report.status)}
-              </Badge>
             </div>
-          </CardHeader>
+            <Chip
+              variant="caption"
+              color={statusChipColor(report.status)}
+            >
+              {getStatusText(report.status)}
+            </Chip>
+          </div>
 
-          {(report.description || report.reportedVenue) && (
-            <CardContent className="pt-0">
-              {report.description && (
-                <div className="mb-3">
-                  <h4 className="text-sm font-medium text-gray-700 mb-1">
-                    Description:
-                  </h4>
-                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
-                    {report.description}
-                  </p>
-                </div>
-              )}
-
-              {report.reportedVenue && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-1">
-                    Reported Venue:
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    <strong>{report.reportedVenue.name}</strong> -{" "}
-                    {report.reportedVenue.location}
-                  </p>
-                </div>
-              )}
-            </CardContent>
+          {report.description && (
+            <p className="text-body-regular text-text-secondary mt-3">
+              {report.description}
+            </p>
           )}
-        </Card>
+        </div>
       ))}
 
       {/* Pagination */}
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between pt-4">
-          <p className="text-sm text-gray-500">
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-body-2-regular text-text-tertiary">
             Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{" "}
             {Math.min(
               pagination.currentPage * pagination.pageSize,
@@ -169,15 +149,19 @@ export function UserReportsSection({
             of {pagination.totalItems} reports
           </p>
 
-          <div className="flex space-x-2">
+          <div className="flex gap-2">
             <Button
-              variant="outline"
-              size="sm"
+              variant="secondary"
+              size="small"
               disabled={!pagination.hasPrevious}
             >
               Previous
             </Button>
-            <Button variant="outline" size="sm" disabled={!pagination.hasNext}>
+            <Button
+              variant="secondary"
+              size="small"
+              disabled={!pagination.hasNext}
+            >
               Next
             </Button>
           </div>
