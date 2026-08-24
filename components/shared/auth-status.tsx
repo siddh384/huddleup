@@ -16,7 +16,7 @@ export function AuthStatus({ className }: AuthStatusProps) {
   if (isPending) {
     return (
       <div className={cn("flex items-center gap-2", className)}>
-        <div className="size-9 md:size-10 rounded-full bg-muted/50 animate-pulse"></div>
+        <div className="size-9 rounded-full bg-muted/50 animate-pulse"></div>
       </div>
     );
   }
@@ -24,7 +24,7 @@ export function AuthStatus({ className }: AuthStatusProps) {
   if (session) {
     return (
       <div className={cn("flex items-center gap-2", className)}>
-        <UserProfile className="size-8 md:size-12" />
+        <UserProfile className="size-9" />
       </div>
     );
   }

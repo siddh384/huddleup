@@ -37,7 +37,7 @@ export function CitySwitcher({ currentCity }: CitySwitcherProps) {
       onValueChange={handleCityChange}
       disabled={isPending}
     >
-      <SelectTrigger className="w-[160px] h-9 gap-1.5 text-sm font-medium">
+      <SelectTrigger className="w-[130px] h-9 gap-1 text-sm font-medium">
         {isPending ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
         ) : (
