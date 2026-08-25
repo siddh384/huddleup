@@ -3,19 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createReport } from "@/lib/actions/reports";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/base/buttons/button";
+import { Textarea } from "@/components/base/input/textarea";
+import { SelectField } from "@/components/base/select/select-field";
+import { SelectItem } from "@/components/base/select/select";
 import { Loader2, CheckCircle, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -95,109 +86,105 @@ export function ContactForm({ venues }: ContactFormProps) {
 
   if (submitted) {
     return (
-      <Card className="border-green-200 bg-green-50">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-3">
-            <CheckCircle className="w-6 h-6 text-green-600" />
-            <div>
-              <h3 className="text-lg font-semibold text-green-800">
-                Report Submitted Successfully
-              </h3>
-              <p className="text-green-700 mt-1">
-                Thank you for your feedback. We&apos;ll review your report and
-                take appropriate action. You can track the status in the
-                &ldquo;My Reports&ldquo; tab.
-              </p>
-            </div>
+      <div className="rounded-3xl border border-status-lime-background bg-status-lime-background p-5">
+        <div className="flex items-start gap-3">
+          <CheckCircle className="size-5 shrink-0 text-status-lime-text mt-0.5" />
+          <div className="min-w-0">
+            <h3 className="text-headline-semibold text-status-lime-text">
+              Report Submitted Successfully
+            </h3>
+            <p className="text-body-regular text-status-lime-text mt-1">
+              Thank you for your feedback. We&apos;ll review your report and
+              take appropriate action. You can track the status in the
+              &ldquo;My Reports&rdquo; tab.
+            </p>
+            <Button
+              onClick={() => setSubmitted(false)}
+              variant="secondary"
+              size="small"
+              className="mt-3"
+            >
+              Submit Another Report
+            </Button>
           </div>
-          <Button
-            onClick={() => setSubmitted(false)}
-            variant="outline"
-            className="mt-4"
-          >
-            Submit Another Report
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="rounded-2lg bg-status-rose-background px-4 py-3">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="size-4 shrink-0 text-status-rose-text mt-0.5" />
+            <p className="text-body-regular text-status-rose-text">
+              {error}
+            </p>
+          </div>
+        </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="venue">Venue *</Label>
-        <Select
-          value={formData.venueId}
-          onValueChange={(value) =>
-            setFormData((prev) => ({ ...prev, venueId: value }))
-          }
-          required
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a venue to report" />
-          </SelectTrigger>
-          <SelectContent>
-            {venues.length === 0 ? (
-              <SelectItem value="no-venues" disabled>
-                No venues available
-              </SelectItem>
-            ) : (
-              venues.map((venue) => (
-                <SelectItem key={venue.id} value={venue.id}>
-                  {venue.name} - {venue.location}
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
-      </div>
+      <SelectField
+        label="Venue *"
+        isRequired
+        selectedKey={formData.venueId || undefined}
+        onSelectionChange={(key) =>
+          setFormData((prev) => ({ ...prev, venueId: key as string }))
+        }
+        renderValue={({ isPlaceholder, selectedText }) =>
+          isPlaceholder ? (
+            <span className="text-text-tertiary">Select a venue to report</span>
+          ) : (
+            <span>{selectedText}</span>
+          )
+        }
+      >
+        {venues.length === 0 ? (
+          <SelectItem id="no-venues" isDisabled>
+            No venues available
+          </SelectItem>
+        ) : (
+          venues.map((venue) => (
+            <SelectItem key={venue.id} id={venue.id}>
+              {venue.name} - {venue.location}
+            </SelectItem>
+          ))
+        )}
+      </SelectField>
 
-      <div className="space-y-2">
-        <Label htmlFor="reason">Reason for Report *</Label>
-        <Select
-          value={formData.reason}
-          onValueChange={(value) =>
-            setFormData((prev) => ({ ...prev, reason: value }))
-          }
-          required
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a reason" />
-          </SelectTrigger>
-          <SelectContent>
-            {reportReasons.map((reason) => (
-              <SelectItem key={reason} value={reason}>
-                {reason}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <SelectField
+        label="Reason for Report *"
+        isRequired
+        selectedKey={formData.reason || undefined}
+        onSelectionChange={(key) =>
+          setFormData((prev) => ({ ...prev, reason: key as string }))
+        }
+        renderValue={({ isPlaceholder, selectedText }) =>
+          isPlaceholder ? (
+            <span className="text-text-tertiary">Select a reason</span>
+          ) : (
+            <span>{selectedText}</span>
+          )
+        }
+      >
+        {reportReasons.map((reason) => (
+          <SelectItem key={reason} id={reason}>
+            {reason}
+          </SelectItem>
+        ))}
+      </SelectField>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          placeholder="Please provide additional details about the issue..."
-          value={formData.description}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, description: e.target.value }))
-          }
-          rows={5}
-          className="resize-none"
-        />
-        <p className="text-sm text-gray-500">
-          Optional: Provide specific details to help us understand and address
-          the issue.
-        </p>
-      </div>
+      <Textarea
+        label="Description"
+        placeholder="Please provide additional details about the issue..."
+        value={formData.description}
+        onChange={(value) =>
+          setFormData((prev) => ({ ...prev, description: value }))
+        }
+        rows={5}
+        hint="Optional: Provide specific details to help us understand and address the issue."
+      />
 
       <Button
         type="submit"
@@ -206,7 +193,7 @@ export function ContactForm({ venues }: ContactFormProps) {
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
             Submitting Report...
           </>
         ) : (
@@ -214,7 +201,7 @@ export function ContactForm({ venues }: ContactFormProps) {
         )}
       </Button>
 
-      <p className="text-sm text-gray-500 text-center">
+      <p className="text-body-2-regular text-text-tertiary text-center">
         Reports are reviewed by our admin team. We&apos;ll investigate all
         legitimate concerns and take appropriate action to maintain platform
         quality.

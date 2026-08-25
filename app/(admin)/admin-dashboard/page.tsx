@@ -1,86 +1,21 @@
-import { getCurrentUser, getAllUsers } from "@/lib/actions/users";
+import { RiHomeLine } from "@remixicon/react";
+import { ButtonLink } from "@/components/base/buttons/button";
+import { getAllUsers } from "@/lib/actions/users";
 import { getVenues } from "@/lib/actions/venues";
-import { getAllReports, getReportsStats } from "@/lib/actions/reports";
-import { redirect } from "next/navigation";
-import { AdminDashboardClient } from "@/components/admin/admin-dashboard-client";
+import { getReportsStats } from "@/lib/actions/reports";
+import { AdminOverviewStats } from "@/components/admin/overview-stats";
 
-export default async function AdminDashboardPage() {
-  const userResult = await getCurrentUser();
+export default async function AdminOverviewPage() {
+  // Stats count across the user and venue lists; report counts come pre-aggregated
+  const [usersResult, venuesResult, reportsStatsResult] = await Promise.all([
+    getAllUsers({ pageSize: 50 }),
+    getVenues({ pageSize: 50 }),
+    getReportsStats(),
+  ]);
 
-  if (!userResult.success || !userResult.user) {
-    redirect("/sign-in");
-  }
+  const users = usersResult.success ? (usersResult.users ?? []) : [];
+  const venues = venuesResult.success ? (venuesResult.venues ?? []) : [];
 
-  if (userResult.user.role !== "admin") {
-    redirect("/");
-  }
-
-  // Fetch all data in parallel via server actions
-  const [usersResult, venuesResult, reportsResult, reportsStatsResult] =
-    await Promise.all([
-      getAllUsers({ pageSize: 50 }),
-      getVenues({ pageSize: 50 }),
-      getAllReports({ pageSize: 50 }),
-      getReportsStats(),
-    ]);
-
-  const users = usersResult.success
-    ? (usersResult.users ?? []).map((u) => ({
-        id: u.id,
-        name: u.name ?? "Unknown",
-        email: u.email ?? "",
-        role: u.role as "user" | "facility_owner" | "admin",
-        createdAt:
-          u.createdAt instanceof Date
-            ? u.createdAt.toISOString()
-            : String(u.createdAt),
-        profile: u.profile
-          ? { phoneNumber: u.profile.phoneNumber ?? undefined, city: u.profile.city ?? undefined }
-          : undefined,
-      }))
-    : [];
-
-  const venues = venuesResult.success
-    ? (venuesResult.venues ?? []).map((v) => ({
-        id: v.id,
-        name: v.name,
-        location: v.location,
-        status: v.status as "pending" | "approved" | "rejected",
-        description: v.description ?? undefined,
-        createdAt:
-          v.createdAt instanceof Date
-            ? v.createdAt.toISOString()
-            : String(v.createdAt),
-        owner: v.owner
-          ? { id: v.owner.id, name: v.owner.name ?? "Unknown", email: v.owner.email ?? "" }
-          : undefined,
-        courts: v.courts,
-      }))
-    : [];
-
-  const reports = reportsResult.success
-    ? (reportsResult.reports ?? []).map((r) => ({
-        id: r.id,
-        reason: r.reason,
-        description: r.description ?? undefined,
-        status: r.status as "pending" | "resolved" | "dismissed",
-        createdAt:
-          r.createdAt instanceof Date
-            ? r.createdAt.toISOString()
-            : String(r.createdAt),
-        reporter: r.reporter
-          ? { id: r.reporter.id, name: r.reporter.name ?? "Unknown", email: r.reporter.email ?? "" }
-          : undefined,
-        reportedVenue: r.reportedVenue
-          ? { id: r.reportedVenue.id, name: r.reportedVenue.name, location: r.reportedVenue.location }
-          : undefined,
-        reportedUser: r.reportedUser
-          ? { id: r.reportedUser.id, name: r.reportedUser.name ?? "Unknown", email: r.reportedUser.email ?? "" }
-          : undefined,
-      }))
-    : [];
-
-  // Compute stats server-side
   const adminStats = {
     totalUsers: users.length,
     facilityOwners: users.filter((u) => u.role === "facility_owner").length,
@@ -95,11 +30,23 @@ export default async function AdminDashboardPage() {
   };
 
   return (
-    <AdminDashboardClient
-      adminStats={adminStats}
-      initialUsers={users}
-      initialVenues={venues}
-      initialReports={reports}
-    />
+    <div className="space-y-8">
+      <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight">Admin Dashboard</h1>
+          <p className="text-lg text-muted-foreground">
+            Manage users, venues, and platform reports
+          </p>
+        </div>
+        <ButtonLink href="/" variant="secondary" leadingIcon={RiHomeLine}>
+          Back to Home
+        </ButtonLink>
+      </div>
+
+      <div>
+        <h2 className="mb-6 text-2xl font-semibold">Overview</h2>
+        <AdminOverviewStats stats={adminStats} />
+      </div>
+    </div>
   );
 }

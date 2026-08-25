@@ -41,11 +41,11 @@ export function VenueCarousel({ title, venues, emptyMessage = 'No venues found' 
         {venues.map((venue) => (
           <VenueCard
             key={venue.id}
-              venue={{
-                id: venue.id,
-                name: venue.name,
-                location: venue.location,
-                rating: venue.rating,
+            venue={{
+              id: venue.id,
+              name: venue.name,
+              location: venue.location,
+              rating: venue.rating,
               images: venue.images,
               venueSports: venue.venueSports,
               status: 'approved',

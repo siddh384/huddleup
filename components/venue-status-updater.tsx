@@ -2,14 +2,8 @@
 
 import { useState } from "react";
 import { updateVenueStatus } from "@/lib/actions/venues";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { RiCheckLine, RiCloseLine } from "@remixicon/react";
+import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Loader2, Check, X } from "lucide-react";
@@ -23,7 +17,6 @@ export function VenueStatusUpdater({
   venueId,
   currentStatus,
 }: VenueStatusUpdaterProps) {
-  const [selectedStatus, setSelectedStatus] = useState(currentStatus);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [showRejectionInput, setShowRejectionInput] = useState(false);
@@ -102,11 +95,11 @@ export function VenueStatusUpdater({
             <Button
               onClick={confirmReject}
               disabled={isUpdating || !rejectionReason.trim()}
-              variant="destructive"
-              size="sm"
+              variant="danger"
+              size="small"
             >
               {isUpdating ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
+                <Loader2 className="size-3.5 animate-spin" />
               ) : (
                 "Confirm Reject"
               )}
@@ -114,8 +107,8 @@ export function VenueStatusUpdater({
             <Button
               onClick={cancelReject}
               disabled={isUpdating}
-              variant="outline"
-              size="sm"
+              variant="secondary"
+              size="small"
             >
               Cancel
             </Button>
@@ -126,25 +119,23 @@ export function VenueStatusUpdater({
           <Button
             onClick={() => handleStatusUpdate("approved")}
             disabled={isUpdating}
-            variant="default"
-            size="sm"
+            variant="primary"
+            size="small"
+            leadingIcon={RiCheckLine}
           >
             {isUpdating ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
+              <Loader2 className="size-3.5 animate-spin" />
             ) : (
-              <>
-                <Check className="w-3 h-3 mr-1" />
-                Approve
-              </>
+              "Approve"
             )}
           </Button>
           <Button
             onClick={handleReject}
             disabled={isUpdating}
-            variant="destructive"
-            size="sm"
+            variant="danger"
+            size="small"
+            leadingIcon={RiCloseLine}
           >
-            <X className="w-3 h-3 mr-1" />
             Reject
           </Button>
         </>

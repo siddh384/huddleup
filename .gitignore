@@ -44,4 +44,6 @@ next-env.d.ts
 # local notes and agent workspace
 todo.md
 .zcode/
+
+# local agent planning docs
 docs/superpowers/

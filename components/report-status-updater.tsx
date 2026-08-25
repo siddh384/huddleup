@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { updateReportStatus } from "@/lib/actions/reports";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Check, X } from "lucide-react";
+import { Select, SelectItem } from "@/components/base/select/select";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ReportStatusUpdaterProps {
@@ -41,33 +40,32 @@ export function ReportStatusUpdater({ reportId, currentStatus }: ReportStatusUpd
     return (
         <div className="flex items-center space-x-2">
             <Select
-                value={status}
-                onValueChange={handleStatusUpdate}
-                disabled={isUpdating}
+                className="w-36"
+                size="sm"
+                selectedKey={status}
+                onSelectionChange={(key) => {
+                    if (key !== null) handleStatusUpdate(String(key));
+                }}
+                isDisabled={isUpdating}
             >
-                <SelectTrigger className="w-32">
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="pending">
-                        <div className="flex items-center">
-                            <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2" />
-                            Pending
-                        </div>
-                    </SelectItem>
-                    <SelectItem value="resolved">
-                        <div className="flex items-center">
-                            <Check className="w-4 h-4 text-green-600 mr-2" />
-                            Resolved
-                        </div>
-                    </SelectItem>
-                    <SelectItem value="dismissed">
-                        <div className="flex items-center">
-                            <X className="w-4 h-4 text-gray-600 mr-2" />
-                            Dismissed
-                        </div>
-                    </SelectItem>
-                </SelectContent>
+                <SelectItem id="pending">
+                    <span className="flex items-center gap-2">
+                        <span className="size-2 rounded-full bg-yellow-500" />
+                        Pending
+                    </span>
+                </SelectItem>
+                <SelectItem id="resolved">
+                    <span className="flex items-center gap-2">
+                        <span className="size-2 rounded-full bg-green-600" />
+                        Resolved
+                    </span>
+                </SelectItem>
+                <SelectItem id="dismissed">
+                    <span className="flex items-center gap-2">
+                        <span className="size-2 rounded-full bg-gray-400" />
+                        Dismissed
+                    </span>
+                </SelectItem>
             </Select>
 
             {isUpdating && (

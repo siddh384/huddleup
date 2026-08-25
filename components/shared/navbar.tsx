@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { MdOutlineSportsVolleyball } from "react-icons/md";
+import { usePathname } from "next/navigation";
+
 import { AuthStatus } from "./auth-status";
 import ThemeToggleButton from "@/components/ui/theme-toggle-button";
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, Volleyball, X } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { CitySwitcher } from "@/components/city-switcher";
 import { type City } from "@/lib/cities";
@@ -16,7 +17,41 @@ interface HomeNavbarProps {
 
 export const HomeNavbar = ({ city }: HomeNavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHeroInView, setIsHeroInView] = useState(true);
   const { data: user } = useCurrentUser();
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
+  // Light mode: white text/transparent bg — active only on the homepage
+  // while the hero section overlaps the navbar area.
+  const isLightNav = isHome && isHeroInView;
+
+  // Detect when the hero section scrolls past the fixed navbar by reading
+  // the hero element's actual bounding rect. This adapts to any screen size
+  // via getBoundingClientRect rather than a hardcoded scrollY value.
+  useEffect(() => {
+    if (!isHome) {
+      setIsHeroInView(false);
+      return;
+    }
+
+    const hero = document.querySelector("[data-hero]");
+    if (!hero) return;
+
+    // 64 = 4rem fixed navbar height — a layout constant, not a magic number.
+    const NAVBAR_HEIGHT = 64;
+
+    const update = () => {
+      const rect = hero.getBoundingClientRect();
+      // The navbar sits over the hero as long as the hero's top edge has not
+      // scrolled below the bottom of the navbar (64px from viewport top).
+      setIsHeroInView(rect.top <= NAVBAR_HEIGHT);
+    };
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, [isHome]);
 
   // Debug: Log user data to help verify the fix
   useEffect(() => {
@@ -32,47 +67,71 @@ export const HomeNavbar = ({ city }: HomeNavbarProps) => {
     }
   }, [user]);
 
+  const lightStyles =
+    "text-white/80 hover:text-white hover:bg-white/10 drop-shadow-sm";
+  const darkStyles =
+    "text-muted-foreground hover:text-foreground hover:bg-accent/50";
+
   return (
-    <nav className="fixed top-0 left-0 right-0 h-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 flex items-center px-4 md:px-6 z-50 shadow-sm">
-      <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
+    <nav
+      className={`fixed top-0 left-0 right-0 h-16 flex items-center px-4 md:px-6 z-50 transition-all duration-300 ${
+        isLightNav
+          ? "bg-transparent backdrop-blur-sm border-b border-white/10"
+          : "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40"
+      }`}
+    >
+      <div className="flex items-center justify-between lg:grid lg:grid-cols-3 w-full max-w-7xl mx-auto gap-3">
         {/* Logo */}
-        <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center justify-self-start flex-shrink-0">
           <Link
             href="/"
-            className="flex items-center gap-2 p-2 rounded-lg transition-colors"
+            className={`flex items-center gap-2 p-1.5 rounded-lg transition-colors duration-300 ${
+              isLightNav ? "hover:bg-white/10" : "hover:bg-accent/50"
+            }`}
           >
-            <MdOutlineSportsVolleyball className="size-7 text-primary" />
-            <span className="text-xl font-bold tracking-tight text-foreground hidden sm:block">
+            <Volleyball
+              className={`size-8 transition-colors duration-300 ${
+                isLightNav ? "text-white drop-shadow-sm" : "text-primary"
+              }`}
+            />
+            <span
+              className={`text-xl font-bold tracking-tight hidden sm:block transition-colors duration-300 ${
+                isLightNav ? "text-white drop-shadow-sm" : "text-foreground"
+              }`}
+            >
               HuddleUp
             </span>
           </Link>
         </div>
 
         {/* Desktop Navigation Links */}
-        <div className="hidden lg:flex flex-1 justify-center">
-          <nav className="flex items-center gap-6 xl:gap-8">
+        <div className="hidden lg:flex justify-center">
+          <nav className="flex items-center gap-1">
             <Link
               href="/venues"
-              className="text-sm text-muted-foreground hover:text-foreground font-medium transition-colors relative group py-2"
+              className={`text-sm font-medium transition-colors duration-300 px-3 py-2 rounded-md ${
+                isLightNav ? lightStyles : darkStyles
+              }`}
             >
               Venues
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
             </Link>
 
             <Link
               href="/bookings"
-              className="text-sm text-muted-foreground hover:text-foreground font-medium transition-colors relative group py-2"
+              className={`text-sm font-medium transition-colors duration-300 px-3 py-2 rounded-md ${
+                isLightNav ? lightStyles : darkStyles
+              }`}
             >
               My Bookings
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
             </Link>
 
             <Link
               href="/contact"
-              className="text-sm text-muted-foreground hover:text-foreground font-medium transition-colors relative group py-2"
+              className={`text-sm font-medium transition-colors duration-300 px-3 py-2 rounded-md ${
+                isLightNav ? lightStyles : darkStyles
+              }`}
             >
               Contact
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
             </Link>
 
             {/* Admin Links removed */}
@@ -80,48 +139,67 @@ export const HomeNavbar = ({ city }: HomeNavbarProps) => {
         </div>
 
         {/* User Controls */}
+        <div className="flex items-center justify-self-end gap-1.5">
+          {/* Desktop User Controls — hide city picker and theme toggle on homepage */}
+          <div className="hidden lg:flex items-center gap-1.5">
+            {!isHome && city && <CitySwitcher currentCity={city} />}
+            {!isHome && <ThemeToggleButton variant="circle-blur" start="top-right" />}
+            <AuthStatus homepage={isLightNav} />
+          </div>
 
-        {/* Desktop User Controls */}
-        <div className="hidden lg:flex flex-shrink-0 items-center gap-2">
-          {city && <CitySwitcher currentCity={city} />}
-          <ThemeToggleButton variant="circle-blur" start="top-right" />
-          <AuthStatus />
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="lg:hidden flex items-center gap-2">
-          {city && <CitySwitcher currentCity={city} />}
-          <ThemeToggleButton variant="circle-blur" start="top-right" />
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 rounded-lg hover:bg-accent/50 transition-colors"
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden flex items-center gap-1.5">
+            {!isHome && city && <CitySwitcher currentCity={city} />}
+            {!isHome && <ThemeToggleButton variant="circle-blur" start="top-right" />}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className={`p-2 rounded-lg transition-colors duration-300 ${
+                isLightNav ? "hover:bg-white/10" : "hover:bg-accent/50"
+              }`}
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? (
+                <X
+                  className={`h-5 w-5 transition-colors duration-300 ${
+                    isLightNav ? "text-white drop-shadow-sm" : ""
+                  }`}
+                />
+              ) : (
+                <Menu
+                  className={`h-5 w-5 transition-colors duration-300 ${
+                    isLightNav ? "text-white drop-shadow-sm" : ""
+                  }`}
+                />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden absolute top-16 left-0 right-0 bg-background border-b border-border/40 shadow-lg">
-            <nav className="flex flex-col p-4 space-y-4">
+          <div
+            className={`lg:hidden absolute top-16 left-0 right-0 shadow-lg transition-all duration-300 ${
+              isLightNav
+                ? "bg-black/20 backdrop-blur-xl border-b border-white/10"
+                : "bg-background border-b border-border/40"
+            }`}
+          >
+            <nav className="flex flex-col p-4 space-y-1">
               <Link
                 href="/venues"
-                className="text-sm text-muted-foreground hover:text-foreground font-medium transition-colors py-2"
+                className={`text-sm font-medium transition-colors duration-300 px-3 py-2 rounded-md ${
+                  isLightNav ? lightStyles : darkStyles
+                }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Venues
               </Link>
 
-              {/* Facility Owner Links removed */}
-
               <Link
                 href="/bookings"
-                className="text-sm text-muted-foreground hover:text-foreground font-medium transition-colors py-2"
+                className={`text-sm font-medium transition-colors duration-300 px-3 py-2 rounded-md ${
+                  isLightNav ? lightStyles : darkStyles
+                }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 My Bookings
@@ -129,7 +207,9 @@ export const HomeNavbar = ({ city }: HomeNavbarProps) => {
 
               <Link
                 href="/contact"
-                className="text-sm text-muted-foreground hover:text-foreground font-medium transition-colors py-2"
+                className={`text-sm font-medium transition-colors duration-300 px-3 py-2 rounded-md ${
+                  isLightNav ? lightStyles : darkStyles
+                }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Contact
@@ -138,8 +218,12 @@ export const HomeNavbar = ({ city }: HomeNavbarProps) => {
               {/* Admin Links removed */}
 
               {/* Mobile Auth Status */}
-              <div className="pt-2 border-t border-border/40">
-                <AuthStatus />
+              <div
+                className={`pt-2 mt-2 border-t transition-all duration-300 ${
+                  isLightNav ? "border-white/10" : "border-border/40"
+                }`}
+              >
+                <AuthStatus homepage={isLightNav} />
               </div>
             </nav>
           </div>

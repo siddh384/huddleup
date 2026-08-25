@@ -1,6 +1,8 @@
-import { getVenueById } from "@/lib/actions/venues";
+import { getVenueById, getAllSports } from "@/lib/actions/venues";
 import { getCurrentUser } from "@/lib/actions/users";
 import { redirect, notFound } from "next/navigation";
+import { RiArrowLeftLine } from "@remixicon/react";
+import { ButtonLink } from "@/components/base/buttons/button";
 import { EditVenueForm } from "@/components/edit-venue-form";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +29,6 @@ export default async function EditVenuePage({ params }: EditVenuePageProps) {
 
   const venue = venueResult.venue;
 
-  // Check if user owns this venue or is admin
   if (
     venue.ownerId !== userResult.user.id &&
     userResult.user.role !== "admin"
@@ -36,10 +37,19 @@ export default async function EditVenuePage({ params }: EditVenuePageProps) {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-2xl">
+    <div className="mx-auto max-w-7xl px-6 py-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Edit Venue</h1>
-        <p className="text-muted-foreground">
+        <ButtonLink
+          href={`/venues/${venue.id}`}
+          variant="secondary"
+          size="small"
+          leadingIcon={RiArrowLeftLine}
+          className="mb-3"
+        >
+          Back to Venue
+        </ButtonLink>
+        <h1 className="text-display-4-semibold text-text-primary">Edit Venue</h1>
+        <p className="text-body-regular text-text-secondary mt-1">
           Update your venue details
         </p>
       </div>

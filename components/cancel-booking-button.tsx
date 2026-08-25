@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/base/buttons/button'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,9 +41,9 @@ export function CancelBookingButton({ bookingId, isDisabled }: CancelBookingButt
   return (
     <>
       <Button
-        variant="destructive"
-        size="sm"
-        className="flex-1"
+        variant="secondary"
+        size="small"
+        className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 hover:border-red-300 dark:border-red-900 dark:hover:bg-red-950 dark:hover:text-red-400"
         onClick={() => setOpen(true)}
         disabled={isDisabled}
       >

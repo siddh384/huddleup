@@ -1,14 +1,10 @@
 'use client'
 
 import React from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { MapPin, Star, Edit, Trash2 } from 'lucide-react'
+import { MapPin, Star } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Venue } from '@/db/schema'
-import { DeleteVenueDialog } from './delete-venue-dialog'
 
 interface VenueWithRelations extends Venue {
     owner?: {
@@ -59,20 +55,11 @@ export function VenueCard({
     canManageVenues = false,
     showOwnerInfo = false
 }: VenueCardProps) {
-    const getStatusBadgeColor = (status: string) => {
-        switch (status) {
-            case 'approved': return 'bg-green-100 text-green-800 hover:bg-green-200'
-            case 'pending': return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-            case 'rejected': return 'bg-red-100 text-red-800 hover:bg-red-200'
-            default: return ''
-        }
-    }
-
     const renderStars = (rating: number) => {
         return Array.from({ length: 5 }, (_, index) => (
             <Star
                 key={index}
-                className={`h-4 w-4 ${index < Math.floor(rating)
+                className={`h-3.5 w-3.5 ${index < Math.floor(rating)
                     ? 'fill-yellow-400 text-yellow-400'
                     : index < rating
                         ? 'fill-yellow-200 text-yellow-400'
@@ -83,141 +70,93 @@ export function VenueCard({
     }
 
     const isCompact = variant === 'compact'
-    const imageAspectRatio = isCompact ? 'aspect-[4/3]' : 'aspect-[4/3]'
-    const cardPadding = isCompact ? 'p-4' : 'p-6'
-    const titleSize = isCompact ? 'text-xl font-bold' : 'text-2xl font-bold'
-    const buttonSize = isCompact ? 'sm' : 'default'
-    const buttonVariant = isCompact ? 'outline' : 'default'
 
-    return (
-        <Card className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col p-0">
-            {/* Venue Image */}
-            <div className={`relative w-full ${imageAspectRatio}`}>
+    const sportsList =
+        venue.venueSports?.length
+            ? venue.venueSports.map((vs) => vs.sport.name)
+            : 'sports' in venue && Array.isArray(venue.sports)
+              ? venue.sports
+              : []
+
+    const cardContent = (
+        <div
+            className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md ${isCompact ? '' : 'cursor-pointer'}`}
+        >
+            {/* Hero Image */}
+            <div className={`relative w-full shrink-0 ${isCompact ? 'aspect-[4/3]' : 'h-[220px] sm:h-[260px] md:h-[280px]'}`}>
                 {venue.images && venue.images.length > 0 ? (
                     <Image
                         src={venue.images[0]}
                         alt={venue.name}
                         fill
-                        className="object-cover"
+                        className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        sizes={isCompact ? '(max-width: 768px) 80vw, 33vw' : '(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw'}
                     />
                 ) : (
-                    <div className="flex items-center justify-center h-full bg-gray-100 text-gray-400">
+                    <div className="flex h-full items-center justify-center bg-gray-100 text-gray-400">
                         <MapPin className="w-12 h-12" />
                     </div>
                 )}
 
-                {/* Admin Controls */}
-                {isAdmin && (
-                    <div className="absolute top-3 left-3 flex gap-1">
-                        <Link href={`/venues/${venue.id}/edit`}>
-                            <Button variant="secondary" size="sm" className="h-8 w-8 p-0 bg-background/90 backdrop-blur-sm">
-                                <Edit className="w-4 h-4" />
-                            </Button>
-                        </Link>
-                        <DeleteVenueDialog
-                            venueId={venue.id}
-                            venueName={venue.name}
-                        />
-                    </div>
-                )}
+                {/* Gradient overlay at bottom of image */}
+                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/15 to-transparent pointer-events-none" />
             </div>
 
-            <CardContent className={`${cardPadding} flex flex-col flex-grow pt-0`}>
-                {/* Venue Name and Location */}
-                <div className="mb-2">
-                    <h3 className={`${titleSize} mb-2`}>{venue.name}</h3>
-                    <div className="flex items-center text-muted-foreground mb-2">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span className="text-sm">{venue.location}</span>
-                    </div>
+            {/* Info Section */}
+            <div className={`flex flex-1 flex-col ${isCompact ? 'gap-1.5 p-3' : 'gap-2 p-4 sm:p-5'}`}>
+                {/* Venue Name */}
+                <h3 className={`font-semibold leading-snug tracking-tight text-gray-900 ${isCompact ? 'text-base' : 'text-xl'}`}>
+                    {venue.name}
+                </h3>
 
-                    {/* Rating and Reviews */}
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="flex items-center">
-                            {renderStars(Number(venue.rating) || 0)}
-                        </div>
-                        <span className="font-medium text-sm">{Number(venue.rating || 0).toFixed(1)}</span>
-                        <span className="text-muted-foreground text-sm">
-                            ({venue.reviewCount || 0} reviews)
-                        </span>
-                    </div>
+                {/* Area / Location */}
+                <div className="flex items-center gap-1 text-gray-500">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    <span className="text-sm truncate">{venue.location}</span>
                 </div>
 
-                {/* Sports Tags */}
-                <div className={`flex flex-wrap gap-2 mb-4`}>
-                    {(() => {
-                        const sportsList =
-                            venue.venueSports?.length
-                                ? venue.venueSports.map((vs) => vs.sport.name)
-                                : "sports" in venue && Array.isArray(venue.sports)
-                                  ? venue.sports
-                                  : []
-                        return sportsList.length > 0 ? (
-                            <>
-                                {sportsList.slice(0, 2).map((sportName, i) => (
-                                    <Badge key={i} variant="outline" className="text-xs">
-                                        {sportName}
-                                    </Badge>
-                                ))}
-                                {sportsList.length > 2 && (
-                                    <Badge variant="outline" className="text-xs">
-                                        +{sportsList.length - 2} more
-                                    </Badge>
-                                )}
-                            </>
-                        ) : (
-                            <Badge variant="outline" className="text-xs">
-                                Sports Available
-                            </Badge>
-                        )
-                    })()}
-                </div>
-
-                {/* Amenities */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                    {venue.amenities && venue.amenities.length > 0 ? (
-                        <>
-                            {venue.amenities.slice(0, 2).map((amenity, index) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
-                                    {amenity}
-                                </Badge>
-                            ))}
-                            {venue.amenities.length > 2 && (
-                                <Badge variant="secondary" className="text-xs">
-                                    +{venue.amenities.length - 2} more
-                                </Badge>
-                            )}
-                        </>
-                    ) : (
-                        <>
-                            <Badge variant="secondary" className="text-xs">Air Conditioned</Badge>
-                            <Badge variant="secondary" className="text-xs">Parking Available</Badge>
-                        </>
-                    )}
-                </div>
-
-                {/* Owner Info (Admin View) */}
-                {isAdmin && venue.owner && showOwnerInfo && (
-                    <div className="text-xs text-muted-foreground mb-4 p-2 bg-muted rounded">
-                        Owner: {venue.owner.name} ({venue.owner.email})
+                {/* Sports Pills */}
+                {sportsList.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {sportsList.slice(0, isCompact ? 2 : 3).map((sportName, i) => (
+                            <span
+                                key={i}
+                                className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700"
+                            >
+                                {sportName}
+                            </span>
+                        ))}
+                        {sportsList.length > (isCompact ? 2 : 3) && (
+                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500">
+                                +{sportsList.length - (isCompact ? 2 : 3)} more
+                            </span>
+                        )}
                     </div>
                 )}
 
-                {/* Spacer to push button to bottom */}
-                <div className="flex-grow"></div>
+                {/* Rating — pinned to bottom */}
+                <div className="mt-auto flex items-center gap-1.5 pt-2">
+                    <div className="flex items-center gap-0.5">
+                        {renderStars(Number(venue.rating) || 0)}
+                    </div>
+                    <span className="text-sm font-medium text-gray-800">
+                        {Number(venue.rating || 0).toFixed(1)}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                        ({venue.reviewCount || 0})
+                    </span>
+                </div>
+            </div>
+        </div>
+    )
 
-                {/* View Details Button */}
-                <Button
-                    className={`w-full mt-4 ${isCompact ? 'text-xs' : ''}`}
-                    variant={buttonVariant}
-                    size={buttonSize}
-                    asChild
-                >
-                    <Link href={`/venues/${venue.id}`}>
-                        View Details
-                    </Link>
-                </Button>
-            </CardContent>
-        </Card>
+    if (isCompact) {
+        return cardContent
+    }
+
+    return (
+        <Link href={`/venues/${venue.id}`} className="block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-2xl">
+            {cardContent}
+        </Link>
     )
 }

@@ -34,8 +34,8 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const body = await request.json();
         const { id } = await params;
+        const body = await request.json();
 
         const result = await updateCourt(id, body);
 

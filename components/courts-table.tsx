@@ -2,32 +2,23 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
+  TableColumn,
+  TableBody,
   TableRow,
-} from "@/components/ui/table";
+  TableCell,
+} from "@/components/base/table/table";
+import { Chip } from "@/components/base/badges/chip";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Edit,
-  Trash2,
-  ToggleLeft,
-  ToggleRight,
-  Clock,
-  DollarSign,
-} from "lucide-react";
+import { Edit, Trash2, Eye, Power, Loader2 } from "lucide-react";
 import { CourtForm } from "./court-form";
 import { DeleteCourtDialog } from "./delete-court-dialog";
 import { toast } from "sonner";
@@ -114,122 +105,119 @@ export function CourtsTable({
     router.refresh();
   };
 
-  const formatPrice = (price: string) => {
-    return `$${parseFloat(price).toFixed(2)}`;
-  };
-
-  const formatTime = (time: string) => {
-    return time;
-  };
+  const formatPrice = (price: string) =>
+    `₹${parseFloat(price).toFixed(0)}`;
 
   return (
     <>
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Court Name</TableHead>
-              <TableHead>Sport</TableHead>
-              <TableHead>Price/Hour</TableHead>
-              <TableHead>Operating Hours</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {courts.map((court) => (
-              <TableRow key={court.id}>
-                <TableCell className="font-medium">{court.name}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">{court.sport.name}</Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <DollarSign className="w-4 h-4 mr-1 text-muted-foreground" />
-                    {formatPrice(court.pricePerHour)}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Clock className="w-4 h-4 mr-1 text-muted-foreground" />
-                    {formatTime(court.operatingHoursStart)} -{" "}
-                    {formatTime(court.operatingHoursEnd)}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={court.isActive ? "default" : "secondary"}>
+      <Table size="sm">
+        <TableHeader>
+          <TableColumn
+            id="name"
+            isRowHeader
+            className="!px-5 !py-3.5 min-w-[130px]"
+          >
+            Court Name
+          </TableColumn>
+          <TableColumn id="sport" className="!px-5 !py-3.5">
+            Sport
+          </TableColumn>
+          <TableColumn id="price" className="!px-5 !py-3.5 tabular-nums">
+            Price/Hour
+          </TableColumn>
+          <TableColumn
+            id="hours"
+            className="!px-5 !py-3.5 hidden md:table-cell"
+          >
+            Operating Hours
+          </TableColumn>
+          <TableColumn id="status" className="!px-5 !py-3.5">
+            Status
+          </TableColumn>
+          <TableColumn id="actions" className="!px-5 !py-3.5 text-center">
+            Actions
+          </TableColumn>
+        </TableHeader>
+        <TableBody>
+          {courts.map((court) => (
+            <TableRow key={court.id}>
+              <TableCell className="!px-5 !py-3.5 text-body-semibold">
+                {court.name}
+              </TableCell>
+              <TableCell className="!px-5 !py-3.5">
+                <Chip color="gray">{court.sport.name}</Chip>
+              </TableCell>
+              <TableCell className="!px-5 !py-3.5 tabular-nums">
+                {formatPrice(court.pricePerHour)}
+              </TableCell>
+              <TableCell className="!px-5 !py-3.5 hidden md:table-cell">
+                <span className="text-body-2-regular text-text-tertiary">
+                  {court.operatingHoursStart} – {court.operatingHoursEnd}
+                </span>
+              </TableCell>
+              <TableCell className="!px-5 !py-3.5">
+                <span className="inline-flex items-center gap-2">
+                  <Chip color={court.isActive ? "lime" : "soft"}>
                     {court.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    {/* Toggle Active Status */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleToggleActive(court)}
-                      disabled={loadingCourtId === court.id}
-                      title={
-                        court.isActive ? "Deactivate court" : "Activate court"
-                      }
-                    >
-                      {court.isActive ? (
-                        <ToggleRight className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <ToggleLeft className="w-4 h-4 text-gray-400" />
-                      )}
-                    </Button>
-
-                    {/* Edit Button */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditingCourt(court);
-                        setIsEditDialogOpen(true);
-                      }}
-                      title="Edit court"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-
-                    {/* Delete Button */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setDeletingCourt(court);
-                        setIsDeleteDialogOpen(true);
-                      }}
-                      title="Delete court"
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-            {courts.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-center py-8 text-muted-foreground"
-                >
-                  No courts found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                  </Chip>
+                </span>
+              </TableCell>
+              <TableCell className="!px-5 !py-3.5 text-center">
+                <span className="inline-flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleActive(court)}
+                    disabled={loadingCourtId === court.id}
+                    title={court.isActive ? "Deactivate" : "Activate"}
+                    className={`inline-flex items-center justify-center p-1 rounded-full transition-colors ${
+                      court.isActive
+                        ? "text-green-500 hover:bg-green-50 dark:hover:bg-green-950/30"
+                        : "text-text-tertiary hover:bg-background-secondary"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {loadingCourtId === court.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Eye className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    title="Edit court"
+                    onClick={() => {
+                      setEditingCourt(court);
+                      setIsEditDialogOpen(true);
+                    }}
+                    className="inline-flex items-center justify-center p-1 text-text-tertiary hover:text-text-primary transition-colors"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    title="Delete court"
+                    onClick={() => {
+                      setDeletingCourt(court);
+                      setIsDeleteDialogOpen(true);
+                    }}
+                    className="inline-flex items-center justify-center p-1 text-text-tertiary hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </span>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       {/* Edit Court Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-xl rounded-3xl">
           <DialogHeader>
-            <DialogTitle>Edit Court</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-title-3-semibold">
+              Edit Court
+            </DialogTitle>
+            <DialogDescription className="text-body-2-regular text-text-tertiary">
               Update the details for {editingCourt?.name}
             </DialogDescription>
           </DialogHeader>

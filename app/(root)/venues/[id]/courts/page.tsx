@@ -1,30 +1,11 @@
 import React from "react";
-import { getVenueById } from "@/lib/actions/venues";
-import { getVenueCourts, getVenueSports } from "@/lib/actions/courts";
+import { getVenueById, getAllSports } from "@/lib/actions/venues";
+import { getVenueCourts } from "@/lib/actions/courts";
 import { getCurrentUser } from "@/lib/actions/users";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  ArrowLeft,
-  Plus,
-  Clock,
-  DollarSign,
-  Edit,
-  Trash2,
-  ToggleLeft,
-  ToggleRight,
-} from "lucide-react";
-import Link from "next/link";
+import { RiArrowLeftLine } from "@remixicon/react";
+import { ButtonLink } from "@/components/base/buttons/button";
 import { notFound, redirect } from "next/navigation";
 import { CourtForm } from "@/components/court-form";
-import { DeleteCourtDialog } from "@/components/delete-court-dialog";
 import { CourtsTable } from "@/components/courts-table";
 
 // Force dynamic rendering for this page
@@ -40,13 +21,11 @@ const CourtsPage = async ({ params }: CourtsPageProps) => {
   const resolvedParams = await params;
   const venueId = resolvedParams.id;
 
-  // Get current user
   const userResult = await getCurrentUser();
   if (!userResult.success || !userResult.user) {
     redirect("/sign-in");
   }
 
-  // Get venue details
   const venueResult = await getVenueById(venueId);
   if (!venueResult.success || !venueResult.venue) {
     notFound();
@@ -54,7 +33,6 @@ const CourtsPage = async ({ params }: CourtsPageProps) => {
 
   const venue = venueResult.venue;
 
-  // Check if user owns the venue or is admin
   if (
     venue.ownerId !== userResult.user.id &&
     userResult.user.role !== "admin"
@@ -62,17 +40,16 @@ const CourtsPage = async ({ params }: CourtsPageProps) => {
     redirect("/venues");
   }
 
-  // Get courts and available sports
   const [courtsResult, sportsResult] = await Promise.all([
     getVenueCourts(venueId),
-    getVenueSports(venueId),
+    getAllSports(),
   ]);
 
   if (!courtsResult.success) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="mx-auto max-w-6xl px-6 py-6">
         <div className="text-center">
-          <p className="text-destructive">
+          <p className="text-text-primary">
             Error loading courts: {courtsResult.error}
           </p>
         </div>
@@ -82,9 +59,9 @@ const CourtsPage = async ({ params }: CourtsPageProps) => {
 
   if (!sportsResult.success) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="mx-auto max-w-6xl px-6 py-6">
         <div className="text-center">
-          <p className="text-destructive">
+          <p className="text-text-primary">
             Error loading sports: {sportsResult.error}
           </p>
         </div>
@@ -96,87 +73,49 @@ const CourtsPage = async ({ params }: CourtsPageProps) => {
   const availableSports = sportsResult.sports || [];
 
   return (
-    <div className="container mx-auto p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <Link href={`/venues/${venueId}`}>
-              <Button variant="outline" size="sm" className="mb-4">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Venue
-              </Button>
-            </Link>
-            <h1 className="text-3xl font-bold">Manage Courts</h1>
-            <p className="text-muted-foreground mt-2">
-              {venue.name} - {courts.length} court
-              {courts.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-        </div>
+    <div className="mx-auto max-w-7xl px-6 py-6">
+      {/* Page Header — full-width */}
+      <div className="mb-14">
+        <ButtonLink
+          href={`/venues/${venueId}`}
+          variant="secondary"
+          size="small"
+          leadingIcon={RiArrowLeftLine}
+          className="mb-3"
+        >
+          Back to Venue
+        </ButtonLink>
+        <h1 className="text-display-4-semibold text-text-primary">
+          Manage Courts
+        </h1>
+        <p className="text-body-regular text-text-secondary mt-1">
+          {venue.name} · {courts.length} court
+          {courts.length !== 1 ? "s" : ""}
+        </p>
       </div>
 
-      {/* Available Sports Info */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Available Sports</CardTitle>
-          <CardDescription>
-            Courts can only be created for sports that are available at this
-            venue
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {availableSports.map((sport) => (
-              <Badge key={sport.id} variant="secondary">
-                {sport.name}
-              </Badge>
-            ))}
-            {availableSports.length === 0 && (
-              <p className="text-muted-foreground">
-                No sports configured for this venue.{" "}
-                <Link
-                  href={`/venues/${venueId}/edit`}
-                  className="text-primary hover:underline"
-                >
-                  Add sports to venue
-                </Link>
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Add Court Form */}
-      {availableSports.length > 0 && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-lg">Add New Court</CardTitle>
-            <CardDescription>Create a new court for this venue</CardDescription>
-          </CardHeader>
-          <CardContent>
+      {/* Two-column layout with divider */}
+      <div className="grid grid-cols-1 gap-0 lg:grid-cols-[30fr_70fr]">
+        {/* Left Column — Add New Court */}
+        {availableSports.length > 0 && (
+          <div className="lg:pr-10 lg:border-r lg:border-border">
+            <h2 className="text-title-3-semibold text-text-primary mb-5">
+              Add New Court
+            </h2>
             <CourtForm venueId={venueId} availableSports={availableSports} />
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {/* Courts List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Courts ({courts.length})</CardTitle>
-          <CardDescription>Manage all courts for this venue</CardDescription>
-        </CardHeader>
-        <CardContent>
+        {/* Right Column — Courts */}
+        <div className="lg:pl-10">
+          <h2 className="text-title-3-semibold text-text-primary mb-5">
+            Courts ({courts.length})
+          </h2>
           {courts.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">
+            <div className="py-10 text-center">
+              <p className="text-body-regular text-text-tertiary">
                 No courts created yet
               </p>
-              {availableSports.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Add sports to your venue first to create courts
-                </p>
-              )}
             </div>
           ) : (
             <CourtsTable
@@ -188,8 +127,8 @@ const CourtsPage = async ({ params }: CourtsPageProps) => {
               venueId={venueId}
             />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

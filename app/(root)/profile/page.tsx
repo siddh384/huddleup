@@ -1,23 +1,39 @@
 import { getCurrentUser, getUserStats } from "@/lib/actions/users";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar } from "@/components/base/avatar/avatar";
+import { Chip } from "@/components/base/badges/chip";
 import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  CreditCard,
-  Building2,
-  Star,
-  Bell,
-  Shield,
-} from "lucide-react";
+  RiBuilding2Line,
+  RiCalendarCheckLine,
+  RiCalendarLine,
+  RiMailLine,
+  RiMapPinLine,
+  RiNotification3Line,
+  RiPhoneLine,
+  RiStarLine,
+} from "@remixicon/react";
+import type { ComponentType } from "react";
 import { format } from "date-fns";
 import { ProfileForm } from "@/components/profile-form";
 
 export const dynamic = "force-dynamic";
+
+const roleChipColor = {
+  admin: "blue",
+  facility_owner: "purple",
+  user: "neutral",
+} as const;
+
+function initialsOf(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export default async function ProfilePage() {
   const userResult = await getCurrentUser();
@@ -32,116 +48,132 @@ export default async function ProfilePage() {
   const statsResult = await getUserStats();
   const stats = statsResult.success ? statsResult.stats : null;
 
+  const detailRows: Array<{
+    icon: ComponentType<{ className?: string }>;
+    label: string;
+    value: string;
+  }> = [
+    { icon: RiMailLine, label: "Email", value: currentUser.email },
+    ...(profile?.phoneNumber
+      ? [{ icon: RiPhoneLine, label: "Phone", value: profile.phoneNumber }]
+      : []),
+    ...(profile?.city
+      ? [
+          {
+            icon: RiMapPinLine,
+            label: "Location",
+            value: profile.state
+              ? `${profile.city}, ${profile.state}`
+              : profile.city,
+          },
+        ]
+      : []),
+    {
+      icon: RiCalendarLine,
+      label: "Member since",
+      value: format(new Date(currentUser.createdAt), "MMM dd, yyyy"),
+    },
+  ];
+
+  const statTiles: Array<{
+    icon: ComponentType<{ className?: string }>;
+    label: string;
+    value: number;
+  }> = [
+    {
+      icon: RiCalendarCheckLine,
+      label: "Bookings",
+      value: stats?.totalBookings ?? 0,
+    },
+    { icon: RiBuilding2Line, label: "Venues owned", value: stats?.venuesOwned ?? 0 },
+    { icon: RiStarLine, label: "Reviews given", value: stats?.reviewsGiven ?? 0 },
+    {
+      icon: RiNotification3Line,
+      label: "Unread alerts",
+      value: stats?.unreadNotifications ?? 0,
+    },
+  ];
+
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-        <p className="text-muted-foreground">
-          Manage your account settings and view your activity
+    <div className="container mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <div className="mb-8 space-y-2">
+        <h1 className="text-4xl font-bold tracking-tight">My profile</h1>
+        <p className="text-lg text-muted-foreground">
+          Manage your account settings and see your activity at a glance.
         </p>
       </div>
 
-      <div className="grid gap-6">
-        {/* User Info Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Account Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              {currentUser.image ? (
-                <img
-                  src={currentUser.image}
+      <div className="grid items-start gap-6 lg:grid-cols-[320px_1fr]">
+        {/* Account summary rail */}
+        <aside className="space-y-6 lg:sticky lg:top-20">
+          <Card className="border-0 py-0 shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <Avatar
+                  size="lg"
+                  className="size-14 text-title-2-semibold"
+                  src={currentUser.image ?? undefined}
                   alt={currentUser.name}
-                  className="h-16 w-16 rounded-full object-cover"
+                  initials={initialsOf(currentUser.name)}
                 />
-              ) : (
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-8 w-8 text-primary" />
+                <div className="min-w-0">
+                  <h2 className="truncate text-title-2-semibold">
+                    {currentUser.name}
+                  </h2>
+                  <Chip
+                    variant="caption"
+                    color={
+                      roleChipColor[
+                        currentUser.role as keyof typeof roleChipColor
+                      ] ?? "neutral"
+                    }
+                    className="mt-1 capitalize"
+                  >
+                    {currentUser.role.replace("_", " ")}
+                  </Chip>
                 </div>
-              )}
-              <div>
-                <h2 className="text-xl font-semibold">{currentUser.name}</h2>
-                <p className="text-muted-foreground">{currentUser.email}</p>
-                <Badge variant="outline" className="mt-1">
-                  <Shield className="h-3 w-3 mr-1" />
-                  {currentUser.role.replace("_", " ")}
-                </Badge>
               </div>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2 pt-4 border-t">
-              <div className="flex items-center gap-2 text-sm">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Email:</span>
-                <span>{currentUser.email}</span>
+              <div className="mt-6 space-y-3.5 border-t pt-6">
+                {detailRows.map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="flex items-center gap-3">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-background-tertiary-default">
+                      <Icon className="size-4 text-text-secondary" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-caption-1-regular text-muted-foreground">
+                        {label}
+                      </p>
+                      <p className="truncate text-body-2-medium">{value}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              {profile?.phoneNumber && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Phone:</span>
-                  <span>{profile.phoneNumber}</span>
-                </div>
-              )}
-              {profile?.city && (
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Location:</span>
-                  <span>
-                    {profile.city}
-                    {profile.state ? `, ${profile.state}` : ""}
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 py-0 shadow-lg">
+            <CardContent className="grid grid-cols-2 gap-3 p-5">
+              {statTiles.map(({ icon: Icon, label, value }) => (
+                <div
+                  key={label}
+                  className="flex flex-col gap-1.5 rounded-2lg bg-background-secondary-default p-4"
+                >
+                  <Icon className="size-5 text-text-secondary" />
+                  <span className="text-title-2-bold">{value}</span>
+                  <span className="text-caption-1-regular text-muted-foreground">
+                    {label}
                   </span>
                 </div>
-              )}
-              <div className="flex items-center gap-2 text-sm">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Joined:</span>
-                <span>{format(new Date(currentUser.createdAt), "MMM dd, yyyy")}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        </aside>
 
-        {/* Stats Card */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <CreditCard className="h-6 w-6 mx-auto mb-2 text-blue-500" />
-              <div className="text-2xl font-bold">{stats?.totalBookings || 0}</div>
-              <p className="text-xs text-muted-foreground">Bookings</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Building2 className="h-6 w-6 mx-auto mb-2 text-green-500" />
-              <div className="text-2xl font-bold">{stats?.venuesOwned || 0}</div>
-              <p className="text-xs text-muted-foreground">Venues Owned</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Star className="h-6 w-6 mx-auto mb-2 text-yellow-500" />
-              <div className="text-2xl font-bold">{stats?.reviewsGiven || 0}</div>
-              <p className="text-xs text-muted-foreground">Reviews Given</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Bell className="h-6 w-6 mx-auto mb-2 text-red-500" />
-              <div className="text-2xl font-bold">{stats?.unreadNotifications || 0}</div>
-              <p className="text-xs text-muted-foreground">Unread Notifications</p>
-            </CardContent>
-          </Card>
+        {/* Edit form */}
+        <div className="min-w-0">
+          <ProfileForm user={currentUser} profile={profile ?? null} />
         </div>
-
-        {/* Edit Profile Form */}
-        <ProfileForm
-          user={currentUser}
-          profile={profile ?? null}
-        />
       </div>
     </div>
   );

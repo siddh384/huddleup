@@ -1,70 +1,65 @@
 import React from 'react'
-import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import Link from 'next/link'
 import { DashboardSearch } from '@/components/dashboard-search'
-import { VenueCard } from '@/components/venue-card'
-import { CardCarousel } from '@/components/ui/card-carousel'
-import { RecentlyVisited } from '@/components/recently-visited'
-import { VenueCarousel } from '@/components/venue-carousel'
-import { getPopularVenues, getRecommendedVenues } from '@/lib/actions/venues'
+import { ExploreSports } from '@/components/explore-sports'
+import { HomepageVenueGrid } from '@/components/homepage-venue-grid'
+import { VenueCTA } from '@/components/venue-cta'
+import { getPopularVenues } from '@/lib/actions/venues'
 import { getUserCity } from '@/lib/actions/cities'
 
 const page = async () => {
   const city = await getUserCity()
 
-  const [popularResult, recommendedResult] = await Promise.all([
+  const [popularResult] = await Promise.all([
     getPopularVenues(city ?? undefined),
-    getRecommendedVenues(city ?? undefined),
   ])
 
   const popularVenues = popularResult.success ? popularResult.venues || [] : []
-  const recommendedVenues = recommendedResult.success ? recommendedResult.venues || [] : []
 
   return (
     <div>
-      {/* Hero Section */}
-      <div className="relative min-h-[600px] border-b">
+      {/* Hero Section — full-screen 100vh, bottom of illustration visible */}
+      <div data-hero className="relative -mt-16 min-h-screen">
         <Image
-          src="/football-hero-section.webp"
-          alt="Court"
+          src="/new_new_hero_section.png"
+          alt="Sports venue park illustration"
           fill
-          className="object-cover brightness-70"
+          priority
+          className="object-cover object-bottom"
+          sizes="100vw"
         />
-        <div className="relative flex flex-col items-center justify-center min-h-[600px] px-4 sm:px-8 md:px-16 lg:px-24 xl:px-40">
-          <DashboardSearch initialLocation="" />
-          <div className="space-y-4 max-w-xl text-center">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight text-white">
-              FIND VENUES & PLAYERS NEARBY
+        <div className="relative flex flex-col items-center justify-center min-h-screen -translate-y-[180px] pt-16 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-40">
+          <div className="space-y-4 max-w-2xl text-center mb-8">
+            <h1 className="font-display text-[58px] leading-[110%] tracking-[-0.05em] font-normal text-white">
+              Find the venues,
+              <br />
+              and players nearby
             </h1>
-            <p className="text-sm sm:text-base leading-relaxed text-white px-4">
-              Seamlessly explore sports venues and play with
-              <span className="hidden sm:inline"><br /></span>
-              <span className="sm:hidden"> </span>
-              sports enthusiasts just like you
+            <p className="font-display text-[18px] leading-[130%] tracking-[-0.03em] font-normal text-white/80">
+              Seamlessly explore sports venues and play
+              <br />
+              with sports enthusiasts just like you
             </p>
           </div>
+          <DashboardSearch initialLocation="" city={city} />
         </div>
       </div>
 
-      {/* Recently Visited Section - Client component with localStorage */}
-      <RecentlyVisited />
+      {/* Explore Sports — directly below hero */}
+      <ExploreSports />
 
-      {/* Recommended Venues Section - Top rated in user's city */}
-      <VenueCarousel
-        title="Recommended For You"
-        venues={recommendedVenues}
-        emptyMessage={city ? `No venues available in ${city} yet` : "Sign up to see recommended venues"}
-      />
-
-      {/* Popular Venues Section - All approved venues */}
-      <VenueCarousel
+      {/* Popular Venues */}
+      <HomepageVenueGrid
         title="Popular Venues"
         venues={popularVenues}
         emptyMessage="No venues available"
+        viewAllHref="/venues?status=approved"
       />
+
+      {/* CTA — Own a venue */}
+      <VenueCTA />
     </div>
-  )
+  );
 }
 
 export default page
