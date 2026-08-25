@@ -13,10 +13,10 @@ export default function AuthLayout({
     <div className="flex items-center justify-between h-screen">
       <div className="hidden lg:block lg:w-1/2 h-full bg-black relative">
         <Image
-          src="/image2.png"
+          src="/sign-in-screen-photo.png"
           alt="auth-bg"
           fill
-          className="object-cover"
+          className="object-cover object-bottom"
           sizes="50vw"
           priority
         />

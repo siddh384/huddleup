@@ -28,8 +28,7 @@ export default function AuthCard({
   description: string;
   mode?: "sign-in" | "sign-up";
 }) {
-  const [githubLoading, setGithubLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+const [googleLoading, setGoogleLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
 
   const [name, setName] = useState("");
@@ -257,21 +256,6 @@ export default function AuthCard({
                   Or continue with
                 </div>
               </div>
-              <motion.div
-                variants={itemVariants}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full"
-              >
-                <SignInButton
-                  title="Sign in with Github"
-                  provider="github"
-                  loading={githubLoading}
-                  setLoading={setGithubLoading}
-                  callbackURL="/"
-                  icon={<Icons.Github />}
-                />
-              </motion.div>
               <motion.div
                 variants={itemVariants}
                 whileHover={{ scale: 1.02 }}
