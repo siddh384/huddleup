@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Providers from "@/context/main-provider";
@@ -12,6 +12,12 @@ const fontSans = Inter({
 const fontMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const fontDisplay = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -32,6 +38,7 @@ export default function RootLayout({
           "min-h-screen font-sans antialiased",
           fontSans.variable,
           fontMono.variable,
+          fontDisplay.variable,
         )}
       >
         <Providers>{children}</Providers>

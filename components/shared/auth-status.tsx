@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 
 interface AuthStatusProps {
   className?: string;
+  homepage?: boolean;
 }
 
-export function AuthStatus({ className }: AuthStatusProps) {
+export function AuthStatus({ className, homepage }: AuthStatusProps) {
   const { data: session, isPending } = useSession();
 
   if (isPending) {
@@ -31,9 +32,20 @@ export function AuthStatus({ className }: AuthStatusProps) {
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Button variant="outline" size="sm" asChild>
-        <Link href="/sign-in">Sign In</Link>
-      </Button>
+      {homepage ? (
+        <Button
+          variant="outline"
+          size="sm"
+          asChild
+          className="border-white/30 text-white/90 hover:bg-white/10 hover:text-white"
+        >
+          <Link href="/sign-in">Sign In</Link>
+        </Button>
+      ) : (
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/sign-in">Sign In</Link>
+        </Button>
+      )}
     </div>
   );
 }
