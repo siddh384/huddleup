@@ -11,13 +11,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useState } from "react";
 import { signIn, signUp } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
@@ -42,7 +35,6 @@ export default function AuthCard({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"user" | "facility_owner">("user");
 
   const cardVariants = {
     hidden: {
@@ -132,26 +124,9 @@ export default function AuthCard({
                         onError: (ctx) => {
                           alert(ctx.error.message ?? "Failed to sign up");
                         },
-                        onSuccess: async () => {
-                          // Update user role after successful signup
-                          try {
-                            const response = await fetch(
-                              "/api/user/update-role",
-                              {
-                                method: "PATCH",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({ role }),
-                              },
-                            );
-
-                            if (!response.ok) {
-                              console.error("Failed to update user role");
-                            }
-                          } catch (error) {
-                            console.error("Error updating user role:", error);
-                          }
+                        onSuccess: () => {
+                          // Role is set to default "user" on signup.
+                          // Admins can promote users via the admin dashboard.
                         },
                         onResponse: () => {
                           setEmailLoading(false);
@@ -177,25 +152,6 @@ export default function AuthCard({
                       onChange={(e) => setName(e.target.value)}
                       required
                     />
-                  </div>
-                  <div className="grid gap-2 w-full">
-                    <Label htmlFor="role">Role</Label>
-                    <Select
-                      value={role}
-                      onValueChange={(value: "user" | "facility_owner") =>
-                        setRole(value)
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select your role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="user">User</SelectItem>
-                        <SelectItem value="facility_owner">
-                          Facility Owner
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </>
               )}

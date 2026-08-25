@@ -1,14 +1,13 @@
 "use server";
 
 import { eq, desc, asc, and, gte, lte, sql } from "drizzle-orm";
-import { bookings, courts, timeSlots, venues } from "@/db/schema";
+import { bookings, courts, venues } from "@/db/schema";
 import { db } from "@/db";
 import { getCurrentUser } from "@/lib/actions/users";
 import { revalidatePath } from "next/cache";
 
 export type Booking = typeof bookings.$inferSelect;
 export type NewBooking = typeof bookings.$inferInsert;
-export type TimeSlot = typeof timeSlots.$inferSelect;
 
 // Generate time slots for a court on a specific date
 export async function generateTimeSlots(courtId: string, date: string) {
@@ -445,41 +444,6 @@ export async function getBookingById(bookingId: string) {
   } catch (error) {
     console.error("Error fetching booking:", error);
     return { success: false, error: "Failed to fetch booking" };
-  }
-}
-
-// Update booking payment status
-export async function updateBookingPaymentStatus(
-  bookingId: string,
-  paymentStatus: "pending" | "completed" | "failed",
-) {
-  try {
-    const booking = await db.query.bookings.findFirst({
-      where: eq(bookings.id, bookingId),
-    });
-
-    if (!booking) {
-      return { success: false, error: "Booking not found" };
-    }
-
-    const [updatedBooking] = await db
-      .update(bookings)
-      .set({
-        paymentStatus,
-        updatedAt: new Date(),
-      })
-      .where(eq(bookings.id, bookingId))
-      .returning();
-
-    // Revalidate relevant paths
-    revalidatePath("/bookings");
-    revalidatePath("/my-bookings");
-    revalidatePath("/dashboard");
-
-    return { success: true, booking: updatedBooking };
-  } catch (error) {
-    console.error("Error updating booking payment status:", error);
-    return { success: false, error: "Failed to update payment status" };
   }
 }
 

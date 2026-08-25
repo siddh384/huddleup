@@ -155,20 +155,6 @@ export const bookings = pgTable("bookings", {
   ),
 ]);
 
-export const timeSlots = pgTable("time_slots", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  courtId: uuid("court_id")
-    .notNull()
-    .references(() => courts.id, { onDelete: "cascade" }),
-  date: timestamp("date").notNull(),
-  startTime: varchar("start_time", { length: 5 }).notNull(),
-  endTime: varchar("end_time", { length: 5 }).notNull(),
-  status: varchar("status", { length: 20 }).default("available"), // 'available', 'booked', 'blocked'
-  bookingId: uuid("booking_id").references(() => bookings.id),
-  blockReason: text("block_reason"), // For maintenance blocks
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 export const reviews = pgTable("reviews", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: text("user_id")
@@ -313,32 +299,19 @@ export const courtsRelations = relations(courts, ({ one, many }) => ({
     fields: [courts.sportId],
     references: [sports.id],
   }),
-  bookings: many(bookings),
-  timeSlots: many(timeSlots),
-}));
+bookings: many(bookings),
+	}));
 
-export const bookingsRelations = relations(bookings, ({ one, many }) => ({
-  user: one(user, {
-    fields: [bookings.userId],
-    references: [user.id],
-  }),
-  court: one(courts, {
-    fields: [bookings.courtId],
-    references: [courts.id],
-  }),
-  timeSlots: many(timeSlots),
-  reviews: many(reviews),
-}));
-
-export const timeSlotsRelations = relations(timeSlots, ({ one }) => ({
-  court: one(courts, {
-    fields: [timeSlots.courtId],
-    references: [courts.id],
-  }),
-  booking: one(bookings, {
-    fields: [timeSlots.bookingId],
-    references: [bookings.id],
-  }),
+	export const bookingsRelations = relations(bookings, ({ one, many }) => ({
+	  user: one(user, {
+	    fields: [bookings.userId],
+	    references: [user.id],
+	  }),
+	  court: one(courts, {
+	    fields: [bookings.courtId],
+	    references: [courts.id],
+	  }),
+	  reviews: many(reviews),
 }));
 
 export const reviewsRelations = relations(reviews, ({ one }) => ({
@@ -402,9 +375,6 @@ export type NewReview = typeof reviews.$inferInsert;
 
 export type Sport = typeof sports.$inferSelect;
 export type NewSport = typeof sports.$inferInsert;
-
-export type TimeSlot = typeof timeSlots.$inferSelect;
-export type NewTimeSlot = typeof timeSlots.$inferInsert;
 
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;

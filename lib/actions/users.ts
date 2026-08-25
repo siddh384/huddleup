@@ -86,9 +86,23 @@ export async function createUserProfile(
     const [newProfile] = await db
       .insert(userProfiles)
       .values(newProfileData)
+      .onConflictDoNothing()
       .returning();
 
-    return { success: true, profile: newProfile };
+    let profile: typeof userProfiles.$inferSelect | undefined = newProfile;
+
+    // Another concurrent request may have already created the profile
+    if (!profile) {
+      profile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, userId),
+      });
+    }
+
+    if (!profile) {
+      return { success: false, error: "Failed to create user profile" };
+    }
+
+    return { success: true, profile };
   } catch (error) {
     console.error("Error creating user profile:", error);
     return { success: false, error: "Failed to create user profile" };
@@ -399,24 +413,5 @@ export async function updateUserInfo(userData: {
   } catch (error) {
     console.error("Error updating user info:", error);
     return { success: false, error: "Failed to update user info" };
-  }
-}
-
-// Delete user account (soft delete by deactivating)
-export async function deleteUserAccount() {
-  try {
-    const session = await getSession();
-
-    if (!session || !session.user) {
-      return { success: false, error: "No authenticated user found" };
-    }
-
-    // Note: In a production app, you might want to soft delete or anonymize data
-    // For now, we'll just mark the user as inactive or handle it via better-auth
-
-    return { success: true, message: "Account deletion initiated" };
-  } catch (error) {
-    console.error("Error deleting user account:", error);
-    return { success: false, error: "Failed to delete user account" };
   }
 }

@@ -8,9 +8,9 @@ const polar = new Polar({
 });
 
 export const payForBooking = async (amount: number, bookingId: string) => {
-  // Validate amount is between 100 and 500
-  if (amount < 100 || amount > 500) {
-    return { success: false, error: "Amount must be between ₹100 and ₹500" };
+  // Validate amount is at least ₹1
+  if (amount < 1) {
+    return { success: false, error: "Amount must be at least ₹1" };
   }
 
   try {

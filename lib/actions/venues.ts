@@ -273,7 +273,6 @@ export async function getVenues({
               columns: {
                 id: true,
                 name: true,
-                email: true,
               },
             },
             venueSports: {
@@ -297,7 +296,6 @@ export async function getVenues({
             columns: {
               id: true,
               name: true,
-              email: true,
             },
           },
           venueSports: {
@@ -372,7 +370,6 @@ export async function getVenueById(venueId: string) {
           columns: {
             id: true,
             name: true,
-            email: true,
           },
         },
         venueSports: {
@@ -615,7 +612,7 @@ export async function getOwnerDashboardStats() {
           and(
             inArray(courts.venueId, venueIds),
             eq(bookings.status, "confirmed"),
-            eq(bookings.paymentStatus, "paid"),
+            eq(bookings.paymentStatus, "completed"),
           ),
         );
 

@@ -53,18 +53,8 @@ export const HomeNavbar = ({ city }: HomeNavbarProps) => {
     return () => window.removeEventListener("scroll", update);
   }, [isHome]);
 
-  // Debug: Log user data to help verify the fix
   useEffect(() => {
-    if (user) {
-      console.log("NavBar User Data:", { role: user.role, name: user.name });
-      console.log(
-        "Should show Create Venue:",
-        user.role === "facility_owner" || user.role === "admin",
-      );
-      console.log("Should show Admin:", user.role === "admin");
-    } else {
-      console.log("NavBar: No user data");
-    }
+    // Debug logging removed for viva
   }, [user]);
 
   const lightStyles =

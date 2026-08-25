@@ -112,33 +112,3 @@ export const getUserStats = async () => {
     return null;
   }
 };
-
-// Update user role (admin only)
-export const updateUserRole = async (
-  userId: string,
-  role: "user" | "facility_owner" | "admin",
-) => {
-  try {
-    const response = await fetch("/api/user/update-role", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        userId,
-        role,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to update role");
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Error updating user role:", error);
-    throw error;
-  }
-};

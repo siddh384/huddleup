@@ -14,13 +14,10 @@ export const auth = betterAuth({
     sendResetPassword: async ({ user, url, token }, request) => {
       // TODO: Replace with your email provider integration
       // Example: await sendEmail({ to: user.email, subject: "Reset your password", text: `Reset link: ${url}` })
-      console.log("[BetterAuth] sendResetPassword invoked for:", user.email);
-      console.log("Reset URL:", url);
-      console.log("Token:", token);
     },
     // Optional callback after a successful password reset
     onPasswordReset: async ({ user }, request) => {
-      console.log(`[BetterAuth] Password reset for user: ${user.email}`);
+      // Password reset completed successfully
     },
   },
   socialProviders: {
