@@ -213,8 +213,8 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
         {/* Two-column booking area */}
         <div className="grid grid-cols-1 gap-8 p-6 pt-4 lg:grid-cols-2">
-          {/* Left — Calendar */}
-          <div>
+          {/* Left — Calendar + Duration */}
+          <div className="flex flex-col gap-4">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -231,10 +231,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               }}
               className="w-full [&_.rdp-month]:!p-0 [&_.rdp-month_caption]:!justify-start [&_.rdp-month_caption]:!pb-2 [&_.rdp-month_caption]:!text-title-3-semibold [&_.rdp-table]:!w-full [&_.rdp-cell]:!p-0 [&_.rdp-cell>button]:!h-9 [&_.rdp-cell>button]:!w-9 [&_.rdp-cell>button]:!text-sm"
             />
-          </div>
 
-          {/* Right — Duration + Time slots */}
-          <div className="flex flex-col gap-4">
             {/* Duration row */}
             <div className="flex items-center justify-between gap-4 rounded-2xl border border-border px-4 py-3">
               <button
@@ -262,14 +259,12 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                 <Plus className="h-3.5 w-3.5 text-text-secondary" />
               </button>
             </div>
+          </div>
 
-            {/* Estimated total */}
-            <div className="text-body-2-regular text-text-tertiary text-right">
-              ₹{(parseFloat(pricePerHour) * duration).toFixed(0)} estimated
-            </div>
-
+          {/* Right — Time slots */}
+          <div className="flex flex-col gap-4">
             {/* Slots header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mt-3">
               <span className="text-body-2-regular text-text-tertiary">
                 {format(selectedDate, "EEE, MMM dd")} ·{" "}
                 {
@@ -293,7 +288,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                 <Loader2 className="h-5 w-5 animate-spin text-text-tertiary" />
               </div>
             ) : (
-              <div className="grid max-h-[290px] grid-cols-2 gap-2 overflow-y-auto pr-1">
+              <div className="min-h-0 max-h-[40vh] flex-1 grid grid-cols-2 content-start gap-2 overflow-y-auto pr-1">
                 {availableSlots.length > 0 ? (
                   availableSlots.map((slot, index) => {
                     const isAvailable = isSlotAvailableForDuration(

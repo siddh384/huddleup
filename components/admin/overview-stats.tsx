@@ -13,10 +13,10 @@ export function AdminOverviewStats({ stats }: { stats: AdminStats }) {
       <Card className="hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-          <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <Users className="h-4 w-4 text-blue-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold text-blue-700 dark:text-blue-300">
+          <div className="text-3xl font-bold text-blue-700">
             {stats.totalUsers}
           </div>
           <p className="text-xs text-muted-foreground mt-1">
@@ -31,10 +31,10 @@ export function AdminOverviewStats({ stats }: { stats: AdminStats }) {
           <CardTitle className="text-sm font-medium">
             Facility Owners
           </CardTitle>
-          <UserCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <UserCheck className="h-4 w-4 text-green-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold text-green-700 dark:text-green-300">
+          <div className="text-3xl font-bold text-green-700">
             {stats.facilityOwners}
           </div>
           <p className="text-xs text-muted-foreground mt-1">
@@ -46,10 +46,10 @@ export function AdminOverviewStats({ stats }: { stats: AdminStats }) {
       <Card className="hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Pending Venues</CardTitle>
-          <Building2 className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+          <Building2 className="h-4 w-4 text-yellow-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold text-yellow-700 dark:text-yellow-300">
+          <div className="text-3xl font-bold text-yellow-700">
             {stats.pendingVenues}
           </div>
           <p className="text-xs text-muted-foreground mt-1">Awaiting review</p>
@@ -61,10 +61,10 @@ export function AdminOverviewStats({ stats }: { stats: AdminStats }) {
           <CardTitle className="text-sm font-medium">
             Pending Reports
           </CardTitle>
-          <Flag className="h-4 w-4 text-red-600 dark:text-red-400" />
+          <Flag className="h-4 w-4 text-red-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold text-red-700 dark:text-red-300">
+          <div className="text-3xl font-bold text-red-700">
             {stats.pendingReports}
           </div>
           <p className="text-xs text-muted-foreground mt-1">

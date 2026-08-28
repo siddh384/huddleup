@@ -86,6 +86,7 @@ export const venues = pgTable("venues", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   status: varchar("status", { length: 20 }).default("pending"), // 'pending', 'approved', 'rejected'
+  isActive: boolean("is_active").default(true), // Whether the venue is currently active (admins can disable/enable)
   approvedBy: text("approved_by").references(() => user.id),
   approvedAt: timestamp("approved_at"),
   rejectionReason: text("rejection_reason"),

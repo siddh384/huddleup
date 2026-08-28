@@ -9,7 +9,9 @@ export default async function AdminVenuesPage() {
         id: v.id,
         name: v.name,
         location: v.location,
+        city: v.city,
         status: v.status as "pending" | "approved" | "rejected",
+        isActive: v.isActive ?? true,
         description: v.description ?? undefined,
         createdAt:
           v.createdAt instanceof Date

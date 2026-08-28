@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { AuthStatus } from "./auth-status";
-import ThemeToggleButton from "@/components/ui/theme-toggle-button";
 import { useState, useEffect } from "react";
 import { Menu, Volleyball, X } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -133,14 +132,12 @@ export const HomeNavbar = ({ city }: HomeNavbarProps) => {
           {/* Desktop User Controls — hide city picker and theme toggle on homepage */}
           <div className="hidden lg:flex items-center gap-1.5">
             {!isHome && city && <CitySwitcher currentCity={city} />}
-            {!isHome && <ThemeToggleButton variant="circle-blur" start="top-right" />}
             <AuthStatus homepage={isLightNav} />
           </div>
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden flex items-center gap-1.5">
             {!isHome && city && <CitySwitcher currentCity={city} />}
-            {!isHome && <ThemeToggleButton variant="circle-blur" start="top-right" />}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className={`p-2 rounded-lg transition-colors duration-300 ${

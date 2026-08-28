@@ -166,7 +166,7 @@ const CreateReviewDialog: React.FC<{
                                         onMouseEnter={() => setHoverRating(idx)}
                                         onMouseLeave={() => setHoverRating(0)}
                                         onClick={() => setRating(idx)}
-                                        className="rounded-full p-2 transition-colors duration-150 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                                        className="rounded-full p-2 transition-colors duration-150 hover:bg-yellow-50"
                                     >
                                         <Star
                                             size={24}

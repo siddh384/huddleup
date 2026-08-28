@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Chip } from "@/components/base/badges/chip";
 import {
@@ -88,31 +87,7 @@ const bookingColumns: ColumnDef<BookingData>[] = [
   },
 ];
 
-export function BookingsTable() {
-  const [bookings, setBookings] = useState<BookingData[]>([]);
-  const [bookingsLoading, setBookingsLoading] = useState(true);
-
-  // The API enforces the owner role.
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        setBookingsLoading(true);
-        const response = await fetch("/api/bookings/owner");
-        const data = await response.json();
-
-        if (data.success && data.bookings) {
-          setBookings(data.bookings);
-        }
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-      } finally {
-        setBookingsLoading(false);
-      }
-    };
-
-    fetchBookings();
-  }, []);
-
+export function BookingsTable({ bookings }: { bookings: BookingData[] }) {
   return (
     <Card className="border-0 shadow-lg">
       <CardContent className="">
@@ -122,20 +97,13 @@ export function BookingsTable() {
             View and manage all bookings across your venues
           </p>
         </div>
-        {bookingsLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <span className="ml-4 text-lg">Loading bookings...</span>
-          </div>
-        ) : (
-          <DataTable
-            columns={bookingColumns}
-            data={bookings}
-            filterColumn="venueName"
-            filterPlaceholder="Filter bookings by venue..."
-            label="Bookings"
-          />
-        )}
+        <DataTable
+          columns={bookingColumns}
+          data={bookings}
+          filterColumn="venueName"
+          filterPlaceholder="Filter bookings by venue..."
+          label="Bookings"
+        />
       </CardContent>
     </Card>
   );

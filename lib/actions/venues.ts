@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
-import { eq, desc, asc, and, or, ilike, sql, inArray, gte } from "drizzle-orm";
+import { eq, desc, asc, and, or, ilike, sql, inArray, gte, ne } from "drizzle-orm";
 import {
   venues,
   courts,
@@ -182,30 +182,32 @@ export async function updateVenue(
 
 // Get all venues with pagination and filtering
 export async function getVenues({
-  page = 1,
-  pageSize = 12,
-  searchQuery,
-  sportFilter,
-  locationFilter,
-  ratingFilter,
-  status = "approved",
-  city,
-}: {
-  page?: number;
-  pageSize?: number;
-  searchQuery?: string;
-  sportFilter?: string;
-  locationFilter?: string;
-  ratingFilter?: string;
-  status?: "pending" | "approved" | "rejected";
-  city?: City;
-} = {}) {
-  try {
-    const skipAmount = (page - 1) * pageSize;
-
-    // Build search conditions
-    const searchConditions = [];
-    searchConditions.push(eq(venues.status, status));
+	  page = 1,
+	  pageSize = 12,
+	  searchQuery,
+	  sportFilter,
+	  locationFilter,
+	  ratingFilter,
+	  status,
+	  city,
+	}: {
+	  page?: number;
+	  pageSize?: number;
+	  searchQuery?: string;
+	  sportFilter?: string;
+	  locationFilter?: string;
+	  ratingFilter?: string;
+	  status?: "pending" | "approved" | "rejected";
+	  city?: City;
+	} = {}) {
+	  try {
+	    const skipAmount = (page - 1) * pageSize;
+	
+	    // Build search conditions
+	    const searchConditions = [];
+	    if (status) {
+	      searchConditions.push(eq(venues.status, status));
+	    }
 
     // City filter
     if (city && isValidCity(city)) {
@@ -520,7 +522,7 @@ export async function updateVenueStatus(
   }
 }
 
-// Delete venue (admin only)
+// Delete venue (admin or venue owner)
 export async function deleteVenue(venueId: string) {
   try {
     const userResult = await getCurrentUser();
@@ -529,9 +531,18 @@ export async function deleteVenue(venueId: string) {
       return { success: false, error: "No authenticated user found" };
     }
 
-    // Check if user is admin
-    if (userResult.user.role !== "admin") {
-      return { success: false, error: "Unauthorized: Admin access required" };
+    // Get the venue to check ownership
+    const existingVenue = await db.query.venues.findFirst({
+      where: eq(venues.id, venueId),
+    });
+
+    if (!existingVenue) {
+      return { success: false, error: "Venue not found" };
+    }
+
+    // Check if user is admin or venue owner
+    if (userResult.user.role !== "admin" && existingVenue.ownerId !== userResult.user.id) {
+      return { success: false, error: "Unauthorized: Admin or venue owner access required" };
     }
 
     const [deletedVenue] = await db
@@ -551,6 +562,48 @@ export async function deleteVenue(venueId: string) {
   } catch (error) {
     console.error("Error deleting venue:", error);
     return { success: false, error: "Failed to delete venue" };
+  }
+}
+
+// Toggle venue active status (admin or venue owner)
+export async function toggleVenueActive(venueId: string) {
+  try {
+    const userResult = await getCurrentUser();
+
+    if (!userResult.success || !userResult.user) {
+      return { success: false, error: "No authenticated user found" };
+    }
+
+    const venue = await db.query.venues.findFirst({
+      where: eq(venues.id, venueId),
+    });
+
+    if (!venue) {
+      return { success: false, error: "Venue not found" };
+    }
+
+    // Check if user is admin or venue owner
+    if (userResult.user.role !== "admin" && venue.ownerId !== userResult.user.id) {
+      return { success: false, error: "Unauthorized: Admin or venue owner access required" };
+    }
+
+    const [updatedVenue] = await db
+      .update(venues)
+      .set({
+        isActive: !venue.isActive,
+        updatedAt: new Date(),
+      })
+      .where(eq(venues.id, venueId))
+      .returning();
+
+    revalidatePath("/");
+    revalidatePath("/venues");
+    revalidatePath("/admin");
+
+    return { success: true, venue: updatedVenue };
+  } catch (error) {
+    console.error("Error toggling venue active status:", error);
+    return { success: false, error: "Failed to toggle venue status" };
   }
 }
 
@@ -611,8 +664,7 @@ export async function getOwnerDashboardStats() {
         .where(
           and(
             inArray(courts.venueId, venueIds),
-            eq(bookings.status, "confirmed"),
-            eq(bookings.paymentStatus, "completed"),
+            ne(bookings.status, "cancelled"),
           ),
         );
 

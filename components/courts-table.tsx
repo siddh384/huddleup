@@ -171,7 +171,7 @@ export function CourtsTable({
                     title={court.isActive ? "Deactivate" : "Activate"}
                     className={`inline-flex items-center justify-center p-1 rounded-full transition-colors ${
                       court.isActive
-                        ? "text-green-500 hover:bg-green-50 dark:hover:bg-green-950/30"
+                        ? "text-green-500 hover:bg-green-50"
                         : "text-text-tertiary hover:bg-background-secondary"
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >

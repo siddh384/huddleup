@@ -209,7 +209,7 @@ const VenueDetailsPage = async ({ params }: VenueDetailsPageProps) => {
                   {venue.venueSports.map((venueSport) => (
                     <span
                       key={venueSport.sportId}
-                      className="inline-flex items-center rounded-full bg-neutral-900 px-3.5 py-1.5 text-caption-1-semibold text-white dark:bg-neutral-100 dark:text-neutral-900"
+                      className="inline-flex items-center rounded-full bg-neutral-900 px-3.5 py-1.5 text-caption-1-semibold text-white"
                     >
                       {venueSport.sport.name}
                     </span>

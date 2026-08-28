@@ -20,7 +20,9 @@ export type VenueData = {
   id: string;
   name: string;
   location: string;
+  city: string;
   status: "pending" | "approved" | "rejected";
+  isActive: boolean;
   description?: string;
   createdAt: string;
   owner?: { id: string; name: string; email: string };

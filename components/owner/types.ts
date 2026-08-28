@@ -3,6 +3,7 @@ export type VenueData = {
   name: string;
   location: string;
   status: string;
+  isActive: boolean;
   courtsCount: number;
   totalBookings: number;
   revenue: number;

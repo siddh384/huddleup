@@ -37,7 +37,7 @@ export function AuthStatus({ className, homepage }: AuthStatusProps) {
           variant="outline"
           size="sm"
           asChild
-          className="border-white/30 text-white/90 hover:bg-white/10 hover:text-white"
+          className="border-white/30 text-white/90 bg-white/10"
         >
           <Link href="/sign-in">Sign In</Link>
         </Button>

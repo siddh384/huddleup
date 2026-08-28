@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ThemeToggler from "@/context/theme-toggle";
 
 export default function AuthLayout({
   children,
@@ -30,7 +29,6 @@ export default function AuthLayout({
               Back to Home
             </Button>
           </Link>
-          <ThemeToggler className="size-10" />
         </div>
 
         {/* Auth content */}

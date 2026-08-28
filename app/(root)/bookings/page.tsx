@@ -192,7 +192,7 @@ const BookingsPage = async () => {
                       size="small"
                       className="flex-1"
                     >
-                      View Booking
+                      View Venue
                     </ButtonLink>
                     {timing === "upcoming" && (
                       <CancelBookingButton bookingId={booking.id} />
