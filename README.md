@@ -416,10 +416,6 @@ Contributions are welcome! To get started:
 
 ---
 
-## License
-
-This project is private and not publicly licensed.
-
 ## HuddleUp — Manual Test Cases
 
 | Test Case ID | Description | Preconditions | Test Steps | Expected Result | Actual Result | Pass/Fail |
